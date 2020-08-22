@@ -23,7 +23,7 @@ namespace ChessDF
             [' '] = " "
         };
 
-        public void RenderUnicode(ChessBoard chessBoard)
+        public void RenderUnicode(ChessPosition chessBoard)
         {
             for (int row = 0; row < 8; row++)
             {
@@ -36,7 +36,7 @@ namespace ChessDF
             }
         }
 
-        public void RenderBasic(ChessBoard chessBoard)
+        public void RenderBasic(ChessPosition chessBoard)
         {
             for (int row = 0; row < 8; row++)
             {

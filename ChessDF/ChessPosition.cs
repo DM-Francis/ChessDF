@@ -5,14 +5,14 @@ using System.Text;
 
 namespace ChessDF
 {
-    public class ChessBoard
+    public class ChessPosition
     {
         private const int _boardSize = 8;
         private readonly char[,] _chessGrid = new char[_boardSize, _boardSize];     // row, column
 
-        private static readonly char[] _pieceCharacters = new char[] { 'k', 'q', 'r', 'b', 'n', 'p', 'K', 'Q', 'R', 'B', 'N', 'P' };
+        private static readonly char[] _pieceChars = new char[] { 'k', 'q', 'r', 'b', 'n', 'p', 'K', 'Q', 'R', 'B', 'N', 'P' };
 
-        public ChessBoard(string? fenString = null)
+        public ChessPosition(string? fenString = null)
         {
             if (fenString is null)
             {
@@ -35,7 +35,7 @@ namespace ChessDF
 
             for (int i = 0; i < piecePlacement.Length; i++)
             {
-                if (_pieceCharacters.Any(f => f == piecePlacement[i]))
+                if (_pieceChars.Any(f => f == piecePlacement[i]))
                 {
                     _chessGrid[row, column] = piecePlacement[i];
                     column++;
