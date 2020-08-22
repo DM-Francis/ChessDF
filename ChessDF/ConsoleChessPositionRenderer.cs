@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ChessDF
 {
-    public class ConsoleChessBoardRenderer
+    public class ConsoleChessPositionRenderer
     {
         private readonly Dictionary<char, string> _fenToUnicode = new Dictionary<char, string>
         {
@@ -23,26 +23,26 @@ namespace ChessDF
             [' '] = " "
         };
 
-        public void RenderUnicode(ChessPosition chessBoard)
+        public void RenderUnicode(ChessPosition position)
         {
             for (int row = 0; row < 8; row++)
             {
                 for (int col = 0; col < 8; col++)
                 {
-                    Console.Write(_fenToUnicode[chessBoard[row, col]]);
+                    Console.Write(_fenToUnicode[position[row, col]]);
                 }
 
                 Console.WriteLine();
             }
         }
 
-        public void RenderBasic(ChessPosition chessBoard)
+        public void RenderBasic(ChessPosition position)
         {
             for (int row = 0; row < 8; row++)
             {
                 for (int col = 0; col < 8; col++)
                 {
-                    Console.Write(chessBoard[row, col]);
+                    Console.Write(position[row, col]);
                 }
 
                 Console.WriteLine();

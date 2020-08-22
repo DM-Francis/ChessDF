@@ -6,7 +6,7 @@ namespace ChessDF
     {
         static void Main(string[] args)
         {
-            var renderer = new ConsoleChessBoardRenderer();
+            var renderer = new ConsoleChessPositionRenderer();
 
             var positions = new[]
             {
