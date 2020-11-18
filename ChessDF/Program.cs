@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChessDF.Core;
+using System;
 
 namespace ChessDF
 {
@@ -17,11 +18,15 @@ namespace ChessDF
                 new ChessPosition("4k3/8/8/8/8/8/4P3/4K3 w - - 5 39"),
             };
 
-            foreach(var pos in positions)
-            {
-                renderer.RenderBasic(pos);
-                Console.WriteLine();
-            }
+            //foreach(var pos in positions)
+            //{
+            //    renderer.RenderBasic(pos);
+            //    Console.WriteLine();
+            //}
+
+            renderer.RenderBBBoard(Board.StartingPosition);
+
+            Console.WriteLine(Board.StartingPosition.WhiteBishops);
         }
     }
 }
