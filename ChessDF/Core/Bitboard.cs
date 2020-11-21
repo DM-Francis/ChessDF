@@ -10,8 +10,9 @@ namespace ChessDF.Core
 {
     public readonly struct Bitboard : IEquatable<Bitboard>
     {
-        readonly ulong _bits;
-
+        private readonly ulong _bits;
+        private const ulong _notAFile = 0xfefefefefefefefe;
+        private const ulong _notHFile = 0x7f7f7f7f7f7f7f7f;
 
         public Bitboard(ulong bits)
         {
@@ -56,6 +57,15 @@ namespace ChessDF.Core
             return output;
         }
 
+        public Bitboard SoutOne() => _bits >> 8;
+        public Bitboard NortOne() => _bits << 8;
+        public Bitboard EastOne() => (_bits << 1) & _notAFile;
+        public Bitboard NoEaOne() => (_bits << 9) & _notAFile;
+        public Bitboard SoEaOne() => (_bits >> 7) & _notAFile;
+        public Bitboard WestOne() => (_bits >> 1) & _notHFile;
+        public Bitboard SoWeOne() => (_bits >> 9) & _notHFile;
+        public Bitboard NoWeOne() => (_bits << 7) & _notHFile;
+
         public override bool Equals(object? obj) => obj is Bitboard bitboard && Equals(bitboard);
         public bool Equals(Bitboard other) => _bits == other._bits;
         public override int GetHashCode() => HashCode.Combine(_bits);
@@ -70,13 +80,16 @@ namespace ChessDF.Core
 
         public override string ToString()
         {
-            string binary = ToBinaryString(_bits);
-            string fullBinary = binary.PadLeft(64, '0');
+            string hex = _bits.ToString("x16");
 
-            var builder = new StringBuilder();
+            var builder = new StringBuilder("0x");
+
             for (int i = 0; i < 8; i++)
             {
-                builder.AppendLine(fullBinary.Substring(8 * i, 8));
+                builder.Append(hex.Substring(i * 2, 2));
+
+                if (i < 7)
+                    builder.Append('_');
             }
 
             return builder.ToString();
@@ -95,5 +108,8 @@ namespace ChessDF.Core
 
             return binary;
         }
+
+        public static implicit operator Bitboard(ulong bits) => new Bitboard(bits);
+        public static implicit operator ulong(Bitboard bb) => bb._bits;
     }
 }

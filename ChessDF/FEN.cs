@@ -9,7 +9,7 @@ namespace ChessDF
         public static readonly FEN StartingPosition = new FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
         public string PiecePlacement { get; }
-        public Color ActiveColor { get; }
+        public Side ActiveSide { get; }
         public string CastlingAvailability { get; }
         public string EnpassantTargetSquare { get; }
         public int HalfmoveClock { get; }
@@ -25,11 +25,11 @@ namespace ChessDF
             }
 
             PiecePlacement = fenFields[0];
-            ActiveColor = fenFields[1] switch
+            ActiveSide = fenFields[1] switch
             {
-                "w" => Color.White,
-                "b" => Color.Black,
-                _ => throw new ArgumentException("Invalid FEN: active color can only be 'w' or 'b'.")
+                "w" => Side.White,
+                "b" => Side.Black,
+                _ => throw new ArgumentException($"Invalid FEN: {nameof(ActiveSide)} can only be 'w' or 'b'.")
             };
             CastlingAvailability = fenFields[2];
             EnpassantTargetSquare = fenFields[3];
@@ -51,10 +51,10 @@ namespace ChessDF
 
         public override string ToString()
         {
-            string colorString = ActiveColor switch
+            string colorString = ActiveSide switch
             {
-                Color.White => "w",
-                Color.Black => "b",
+                Side.White => "w",
+                Side.Black => "b",
                 _ => "?"
             };
 

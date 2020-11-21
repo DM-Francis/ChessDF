@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ChessDF
 {
-    public enum Color
+    public enum Side
     {
         White,
         Black

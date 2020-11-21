@@ -16,7 +16,7 @@ namespace ChessDF.Test
 
             // Assert
             Assert.Equal("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", fen.PiecePlacement);
-            Assert.Equal(Color.White, fen.ActiveColor);
+            Assert.Equal(Side.White, fen.ActiveSide);
             Assert.Equal("KQkq", fen.CastlingAvailability);
             Assert.Equal("-", fen.EnpassantTargetSquare);
             Assert.Equal(0, fen.HalfmoveClock);

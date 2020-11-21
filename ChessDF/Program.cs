@@ -1,6 +1,8 @@
 ﻿using ChessDF.Core;
 using System;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("ChessDF.Test")]
 namespace ChessDF
 {
     class Program

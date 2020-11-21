@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessDF", "ChessDF\ChessDF.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessDF.Test", "ChessDF.Test\ChessDF.Test.csproj", "{80DFB76D-2B17-4EF7-8824-CAD5D53BC503}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessDF.BitboardTool", "ChessDF.BitboardTool\ChessDF.BitboardTool.csproj", "{18E5240D-99ED-496E-819A-C284EB0FBB4B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{80DFB76D-2B17-4EF7-8824-CAD5D53BC503}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80DFB76D-2B17-4EF7-8824-CAD5D53BC503}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80DFB76D-2B17-4EF7-8824-CAD5D53BC503}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18E5240D-99ED-496E-819A-C284EB0FBB4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18E5240D-99ED-496E-819A-C284EB0FBB4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18E5240D-99ED-496E-819A-C284EB0FBB4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18E5240D-99ED-496E-819A-C284EB0FBB4B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
