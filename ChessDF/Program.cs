@@ -3,6 +3,7 @@ using System;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("ChessDF.Test")]
+[assembly: InternalsVisibleTo("ChessDF.Benchmark")]
 namespace ChessDF
 {
     class Program

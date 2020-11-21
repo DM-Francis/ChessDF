@@ -35,23 +35,54 @@ namespace ChessDF.Core
             return count;
         }
 
-        public Bitboard FlipVertical() => throw new NotImplementedException();
-
-        public List<int> Serialize()
+        public Bitboard FlipVertical()
         {
-            var output = new List<int>(64);
+            ulong k1 = 0x00FF00FF00FF00FF;
+            ulong k2 = 0x0000FFFF0000FFFF;
+            ulong x = _bits;
+            x = ((x >> 8) & k1) | ((x & k1) << 8);
+            x = ((x >> 16) & k2) | ((x & k2) << 16);
+            x = (x >> 32) | (x << 32);
+            return x;
+        }
+
+        public Bitboard MirrorHorizontal()
+        {
+            ulong k1 = 0x5555555555555555;
+            ulong k2 = 0x3333333333333333;
+            ulong k4 = 0x0f0f0f0f0f0f0f0f;
+            ulong x = _bits;
+            x = ((x >> 1) & k1) | ((x & k1) << 1);
+            x = ((x >> 2) & k2) | ((x & k2) << 2);
+            x = ((x >> 4) & k4) | ((x & k4) << 4);
+            return x;
+        }
+
+        public int[] Serialize()
+        {
+            var output = new int[PopCount()];
 
             if (IsEmpty())
                 return output;
 
-            ulong x = _bits;
-            while (x > 0)
+            int i = 0;
+            for (ulong x = _bits; x > 0; x &= x - 1)
             {
                 ulong firstBit = x & (0 - x);
                 int bitIndex = BitUtils.BitScanForward(firstBit);
-                output.Add(bitIndex);
+                output[i++] = bitIndex;
+            }
 
-                x &= x - 1;
+            return output;
+        }
+
+        public Bitboard[] IndividualBits()
+        {
+            int i = 0;
+            var output = new Bitboard[PopCount()];
+            for (ulong x = _bits; x > 0; x &= x - 1)
+            {
+                output[i++] = x & (0 - x);
             }
 
             return output;

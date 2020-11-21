@@ -38,6 +38,8 @@ namespace ChessDF.BitboardTool
             this.BitboardValue = new System.Windows.Forms.ColumnHeader();
             this.ClearAllButton = new System.Windows.Forms.Button();
             this.CopySelectedBitboardsButton = new System.Windows.Forms.Button();
+            this.BitboardTextBox = new System.Windows.Forms.TextBox();
+            this.LoadBitboardButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tableLayoutPanel
@@ -89,7 +91,6 @@ namespace ChessDF.BitboardTool
             this.listView.TabIndex = 2;
             this.listView.UseCompatibleStateImageBehavior = false;
             this.listView.View = System.Windows.Forms.View.Details;
-            this.listView.SelectedIndexChanged += new System.EventHandler(this.listView1_SelectedIndexChanged_1);
             // 
             // Color
             // 
@@ -122,11 +123,30 @@ namespace ChessDF.BitboardTool
             this.CopySelectedBitboardsButton.UseVisualStyleBackColor = true;
             this.CopySelectedBitboardsButton.Click += new System.EventHandler(this.CopySelectedBitboardsButton_Click);
             // 
+            // BitboardTextBox
+            // 
+            this.BitboardTextBox.Location = new System.Drawing.Point(184, 530);
+            this.BitboardTextBox.Name = "BitboardTextBox";
+            this.BitboardTextBox.Size = new System.Drawing.Size(334, 23);
+            this.BitboardTextBox.TabIndex = 5;
+            // 
+            // LoadBitboardButton
+            // 
+            this.LoadBitboardButton.Location = new System.Drawing.Point(576, 530);
+            this.LoadBitboardButton.Name = "LoadBitboardButton";
+            this.LoadBitboardButton.Size = new System.Drawing.Size(97, 23);
+            this.LoadBitboardButton.TabIndex = 6;
+            this.LoadBitboardButton.Text = "Load bitboard";
+            this.LoadBitboardButton.UseVisualStyleBackColor = true;
+            this.LoadBitboardButton.Click += new System.EventHandler(this.LoadBitboardButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(720, 535);
+            this.ClientSize = new System.Drawing.Size(720, 581);
+            this.Controls.Add(this.LoadBitboardButton);
+            this.Controls.Add(this.BitboardTextBox);
             this.Controls.Add(this.CopySelectedBitboardsButton);
             this.Controls.Add(this.ClearAllButton);
             this.Controls.Add(this.listView);
@@ -135,6 +155,7 @@ namespace ChessDF.BitboardTool
             this.Name = "MainForm";
             this.Text = "Bitboard Tool";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -147,6 +168,8 @@ namespace ChessDF.BitboardTool
         private System.Windows.Forms.ColumnHeader BitboardValue;
         private System.Windows.Forms.Button ClearAllButton;
         private System.Windows.Forms.Button CopySelectedBitboardsButton;
+        private System.Windows.Forms.TextBox BitboardTextBox;
+        private System.Windows.Forms.Button LoadBitboardButton;
     }
 }
 

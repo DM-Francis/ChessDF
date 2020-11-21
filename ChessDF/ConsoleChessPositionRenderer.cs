@@ -80,11 +80,11 @@ namespace ChessDF
 
         private static void AddPiecesToPosition(Bitboard bitboard, char pieceChar, char[,] allPieces)
         {
-            List<int> pieceIndices = bitboard.Serialize();
+            int[] pieceIndices = bitboard.Serialize();
             foreach(int index in pieceIndices)
             {
-                (int row, int col) p = IndexToRowAndCol(index);
-                allPieces[p.row, p.col] = pieceChar;
+                (int row, int col) = IndexToRowAndCol(index);
+                allPieces[row, col] = pieceChar;
             }
         }
 

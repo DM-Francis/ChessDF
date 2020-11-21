@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -48,7 +49,7 @@ namespace ChessDF.BitboardTool
 
             if (button.BackColor == _activeColor)
             {
-                button.BackColor = SystemColors.Control;
+                ResetButtonColor(button);
             }
             else
             {
@@ -74,12 +75,6 @@ namespace ChessDF.BitboardTool
                 RefreshBitboards();
             }
         }
-
-        private void listView1_SelectedIndexChanged_1(object sender, EventArgs e)
-        {
-            
-        }
-
 
         private void UpdateListViewFromBitboards()
         {
@@ -133,11 +128,16 @@ namespace ChessDF.BitboardTool
         {
             foreach(var button in tableLayoutPanel.Controls.Cast<Button>())
             {
-                button.BackColor = default;
-                button.UseVisualStyleBackColor = true;
+                ResetButtonColor(button);
             }
 
             RefreshBitboards();
+        }
+
+        private static void ResetButtonColor(Button button)
+        {
+            button.BackColor = default;
+            button.UseVisualStyleBackColor = true;
         }
 
         private void CopySelectedBitboardsButton_Click(object sender, EventArgs e)
@@ -149,11 +149,62 @@ namespace ChessDF.BitboardTool
             {
                 ListViewItem listitem = selectedItems[i];
 
-                if (i > 0) stringBuilder.AppendLine();
+                if (i > 0)
+                    stringBuilder.AppendLine();
+
                 stringBuilder.Append(listitem.SubItems[1].Text);
             }
 
-            Clipboard.SetText(stringBuilder.ToString());
+            if (stringBuilder.Length > 0)
+                Clipboard.SetText(stringBuilder.ToString());
+        }
+
+        private void LoadBitboardButton_Click(object sender, EventArgs e)
+        {
+            string bitboardText = BitboardTextBox.Text;
+
+            if (bitboardText.StartsWith("0x"))
+                bitboardText = bitboardText[2..];
+
+            bitboardText = bitboardText.Replace("_", "");
+
+            if (ulong.TryParse(bitboardText, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong bits))
+            {
+                _bitboards[_activeColor] = new Bitboard(bits);
+                RefreshGridFromBitboards();
+                RefreshBitboards();
+            }
+        }
+
+        private void RefreshGridFromBitboards()
+        {
+            foreach (var button in tableLayoutPanel.Controls.Cast<Button>())
+            {
+                ResetButtonColor(button);
+            }
+
+            foreach ((Color color, Bitboard bitboard) in _bitboards)
+            {
+                int[] indexes = bitboard.Serialize();
+
+                foreach(int index in indexes)
+                {
+                    (int col, int row) = ConvertIndexToPosition(index);
+
+                    if (tableLayoutPanel.GetControlFromPosition(col, row) is Button button)
+                    {
+                        button.BackColor = color;
+                    }
+                }
+            }
+        }
+
+        private static (int col, int row) ConvertIndexToPosition(int index)
+        {
+            int col = index % 8;
+            int row = 7 - index / 8;
+
+            return (col, row);
         }
     }
 }
