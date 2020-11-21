@@ -126,20 +126,6 @@ namespace ChessDF.Core
             return builder.ToString();
         }
 
-        private static string ToBinaryString(ulong number)
-        {
-            const ulong mask = 1;
-            var binary = string.Empty;
-            while (number > 0)
-            {
-                // Logical AND the number and prepend it to the result string
-                binary = (number & mask) + binary;
-                number >>= 1;
-            }
-
-            return binary;
-        }
-
         public static implicit operator Bitboard(ulong bits) => new Bitboard(bits);
         public static implicit operator ulong(Bitboard bb) => bb._bits;
     }
