@@ -21,12 +21,13 @@ namespace ChessDF.Moves
         public MoveFlags Flags => (MoveFlags)((_moveData >> 12) & 0xf);
 
         public bool IsCapture => (Flags & MoveFlags.Capture) != 0;
+        public bool IsPromotion => (Flags & MoveFlags.KnightPromotion) != 0;
 
         public override bool Equals(object? obj) => obj is Move move && Equals(move);
         public bool Equals(Move other) => _moveData == other._moveData;
         public override int GetHashCode() => HashCode.Combine(_moveData);
         public static bool operator ==(Move left, Move right) => left.Equals(right);
         public static bool operator !=(Move left, Move right) => !(left == right);
-        public override string ToString() => $"{From}->{To}";
+        public override string ToString() => IsCapture ? $"{From}x{To}" : $"{From}->{To}";
     }
 }

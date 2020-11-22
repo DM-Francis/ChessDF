@@ -62,22 +62,22 @@ namespace ChessDF.Moves
         public static Bitboard AntiDiagonalAttacks(Square square) => _northWestRays[(int)square] | _southEastRays[(int)square];
 
 
-        public static Bitboard RankAttacks(Bitboard occupied, Square square)
+        public static Bitboard RankAttacks(Square square, Bitboard occupied)
         {
             return GetRayAttacks(occupied, Direction.East, square) | GetRayAttacks(occupied, Direction.West, square);
         }
 
-        public static Bitboard FileAttacks(Bitboard occupied, Square square)
+        public static Bitboard FileAttacks(Square square, Bitboard occupied)
         {
             return GetRayAttacks(occupied, Direction.North, square) | GetRayAttacks(occupied, Direction.South, square);
         }
 
-        public static Bitboard DiagonalAttacks(Bitboard occupied, Square square)
+        public static Bitboard DiagonalAttacks(Square square, Bitboard occupied)
         {
             return GetRayAttacks(occupied, Direction.NorthEast, square) | GetRayAttacks(occupied, Direction.SouthWest, square);
         }
 
-        public static Bitboard AntiDiagonalAttacks(Bitboard occupied, Square square)
+        public static Bitboard AntiDiagonalAttacks(Square square, Bitboard occupied)
         {
             return GetRayAttacks(occupied, Direction.NorthWest, square) | GetRayAttacks(occupied, Direction.SouthEast, square);
         }
@@ -86,9 +86,43 @@ namespace ChessDF.Moves
         public static Bitboard BishopAttacks(Square square) => DiagonalAttacks(square) | AntiDiagonalAttacks(square);
         public static Bitboard QueenAttacks(Square square) => RookAttacks(square) | BishopAttacks(square);
 
-        public static Bitboard RookAttacks(Bitboard occupied, Square square) => RankAttacks(occupied, square) | FileAttacks(occupied, square);
-        public static Bitboard BishopAttacks(Bitboard occupied, Square square) => DiagonalAttacks(occupied, square) | AntiDiagonalAttacks(occupied, square);
-        public static Bitboard QueenAttacks(Bitboard occupied, Square square) => RookAttacks(occupied, square) | BishopAttacks(occupied, square);
+        public static Bitboard RookAttacks(Square square, Bitboard occupied) => RankAttacks(square, occupied) | FileAttacks(square, occupied);
+        public static Bitboard BishopAttacks(Square square, Bitboard occupied) => DiagonalAttacks(square, occupied) | AntiDiagonalAttacks(square, occupied);
+        public static Bitboard QueenAttacks(Square square, Bitboard occupied) => RookAttacks(square, occupied) | BishopAttacks(square, occupied);
+
+        public static Bitboard AllRookAttacks(Bitboard rooks, Bitboard occupied)
+        {
+            Bitboard attacks = 0;
+            foreach(int rook in rooks.Serialize())
+            {
+                attacks |= RookAttacks((Square)rook, occupied);
+            }
+
+            return attacks;
+        }
+
+        public static Bitboard AllBishopAttacks(Bitboard bishops, Bitboard occupied)
+        {
+            Bitboard attacks = 0;
+            foreach (int bishop in bishops.Serialize())
+            {
+                attacks |= BishopAttacks((Square)bishop, occupied);
+            }
+
+            return attacks;
+        }
+
+        public static Bitboard AllQueenAttacks(Bitboard queens, Bitboard occupied)
+        {
+            Bitboard attacks = 0;
+            foreach (int queen in queens.Serialize())
+            {
+                attacks |= QueenAttacks((Square)queen, occupied);
+            }
+
+            return attacks;
+        }
+
 
         static SlidingPieceMoves()
         {

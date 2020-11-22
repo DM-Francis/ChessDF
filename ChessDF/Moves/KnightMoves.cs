@@ -34,5 +34,15 @@ namespace ChessDF.Moves
         }
 
         public static Bitboard KnightAttacks(Square square) => _knightAttacks[(int)square];
+
+        public static Bitboard AllKnightAttacks(Bitboard knights)
+        {
+            Bitboard attacks = 0;
+            foreach(int knight in knights.Serialize())
+            {
+                attacks |= _knightAttacks[knight];
+            }
+            return attacks;
+        }
     }
 }

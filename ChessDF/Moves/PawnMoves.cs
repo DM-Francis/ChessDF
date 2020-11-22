@@ -44,6 +44,16 @@ namespace ChessDF.Moves
             return _blackPawnAttacks[(int)square];
         }
 
+        public static Bitboard AllPawnAttacks(Bitboard pawns, Side side)
+        {
+            return side switch
+            {
+                Side.White => pawns.NoEaOne() | pawns.NoWeOne(),
+                Side.Black => pawns.SoEaOne() | pawns.SoWeOne(),
+                _ => throw new ArgumentOutOfRangeException(nameof(side))
+            };
+        }
+
 
         public static Bitboard PawnSinglePushTargets(Bitboard pawns, Bitboard emptySquares, Side side)
         {

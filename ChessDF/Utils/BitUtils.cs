@@ -65,5 +65,7 @@ namespace ChessDF.Utils
             bits |= bits >> 32;
             return _index64Reverse[(bits * debruijn64) >> 58];
         }
+
+        public static bool IsASubsetOfB(ulong a, ulong b) => (a & b) == a;
     }
 }

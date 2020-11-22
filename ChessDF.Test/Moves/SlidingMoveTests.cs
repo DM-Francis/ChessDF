@@ -97,7 +97,7 @@ namespace ChessDF.Test.Moves
         public void CreatesCorrectBlockedBishopAttacksForSquare(ulong occupied, Square square, ulong expectedAttacks)
         {
             // Act
-            var bishopAttacks = SlidingPieceMoves.BishopAttacks(occupied, square);
+            var bishopAttacks = SlidingPieceMoves.BishopAttacks(square, occupied);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, bishopAttacks);
@@ -111,7 +111,7 @@ namespace ChessDF.Test.Moves
         public void CreatesCorrectBlockedRookAttacksForSquare(ulong occupied, Square square, ulong expectedAttacks)
         {
             // Act
-            var rookAttacks = SlidingPieceMoves.RookAttacks(occupied, square);
+            var rookAttacks = SlidingPieceMoves.RookAttacks(square, occupied);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, rookAttacks);
@@ -125,10 +125,46 @@ namespace ChessDF.Test.Moves
         public void CreatesCorrectBlockedQueenAttacksForSquare(ulong occupied, Square square, ulong expectedAttacks)
         {
             // Act
-            var queenAttacks = SlidingPieceMoves.QueenAttacks(occupied, square);
+            var queenAttacks = SlidingPieceMoves.QueenAttacks(square, occupied);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, queenAttacks);
+        }
+
+        [Theory]
+        [InlineData(0x00_00_00_08_02_00_04_00, 0, 0x61_b2_5c_25_15_2f_49_9a)]
+        [InlineData(0x00_04_00_00_00_02_20_00, 0x00_73_12_04_18_20_d5_50, 0x0a_00_1a_18_ad_50_85_50)]
+        public void CanGetAllBishopAttacks(ulong bishops, ulong occupied, ulong expectedAttacks)
+        {
+            // Act
+            var attacks = SlidingPieceMoves.AllBishopAttacks(bishops, occupied);
+
+            // Assert
+            Assert.Equal<Bitboard>(expectedAttacks, attacks);
+        }
+
+        [Theory]
+        [InlineData(0x00_00_00_08_02_00_04_00, 0, 0x0e_0e_0e_f7_fd_0e_fb_0e)]
+        [InlineData(0x00_04_00_00_00_02_20_00, 0x00_73_12_04_18_20_d5_50, 0x04_1a_06_06_02_3d_52_22)]
+        public void CanGetAllRookAttacks(ulong rooks, ulong occupied, ulong expectedAttacks)
+        {
+            // Act
+            var attacks = SlidingPieceMoves.AllRookAttacks(rooks, occupied);
+
+            // Assert
+            Assert.Equal<Bitboard>(expectedAttacks, attacks);
+        }
+
+        [Theory]
+        [InlineData(0x00_00_00_08_02_00_04_00, 0, 0x6f_be_5e_f7_fd_2f_fb_9e)]
+        [InlineData(0x00_04_00_00_00_02_20_00, 0x00_73_12_04_18_20_d5_50, 0x0e_1a_1e_1e_af_7d_d7_72)]
+        public void CanGetAllQueenAttacks(ulong queens, ulong occupied, ulong expectedAttacks)
+        {
+            // Act
+            var attacks = SlidingPieceMoves.AllQueenAttacks(queens, occupied);
+
+            // Assert
+            Assert.Equal<Bitboard>(expectedAttacks, attacks);
         }
     }
 }

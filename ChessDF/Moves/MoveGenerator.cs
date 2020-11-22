@@ -1,9 +1,7 @@
 ﻿using ChessDF.Core;
+using ChessDF.Utils;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChessDF.Moves
 {
@@ -15,6 +13,11 @@ namespace ChessDF.Moves
 
             AddAllPawnMoves(position, allMoves);
             AddKnightMoves(position, allMoves);
+            AddBishopMoves(position, allMoves);
+            AddRookMoves(position, allMoves);
+            AddQueenMoves(position, allMoves);
+            AddKingMoves(position, allMoves);
+            AddCastlingMoves(position, allMoves);
 
             return allMoves;
         }
@@ -85,7 +88,7 @@ namespace ChessDF.Moves
 
                 if (IsFinalRank(to))
                 {
-                    var promotions = new []
+                    var promotions = new[]
                     {
                         new Move(from, to, MoveFlags.KnightPromotion),
                         new Move(from, to, MoveFlags.BishopPromotion),
@@ -102,7 +105,7 @@ namespace ChessDF.Moves
             }
         }
 
-        private static void AddKnightMoves(Position position, List<Move> allMoves)
+        internal static void AddKnightMoves(Position position, List<Move> allMoves)
         {
             Board board = position.Board;
             Side sideToMove = position.SideToMove;
@@ -113,19 +116,129 @@ namespace ChessDF.Moves
             {
                 Square from = (Square)knightSources[i];
                 Bitboard attacks = KnightMoves.KnightAttacks(from);
-                Bitboard validAttacks = attacks & ~board.FriendlyPieces(sideToMove);
+                AddMovesFromAttacks(attacks, from, sideToMove, board, allMoves);
+            }
+        }
 
-                int[] targetSquares = validAttacks.Serialize();
-                for (int t = 0; t < targetSquares.Length; t++)
+        internal static void AddBishopMoves(Position position, List<Move> allMoves)
+        {
+            Board board = position.Board;
+            Side sideToMove = position.SideToMove;
+            Bitboard bishops = board[sideToMove, Piece.Bishop];
+
+            int[] bishopSources = bishops.Serialize();
+            for (int i = 0; i < bishopSources.Length; i++)
+            {
+                Square from = (Square)bishopSources[i];
+                Bitboard attacks = SlidingPieceMoves.BishopAttacks(from, board.OccupiedSquares);
+                AddMovesFromAttacks(attacks, from, sideToMove, board, allMoves);
+            }
+        }
+
+        internal static void AddRookMoves(Position position, List<Move> allMoves)
+        {
+            Board board = position.Board;
+            Side sideToMove = position.SideToMove;
+            Bitboard rooks = board[sideToMove, Piece.Rook];
+
+            int[] rookSources = rooks.Serialize();
+            for (int i = 0; i < rookSources.Length; i++)
+            {
+                Square from = (Square)rookSources[i];
+                Bitboard attacks = SlidingPieceMoves.RookAttacks(from, board.OccupiedSquares);
+                AddMovesFromAttacks(attacks, from, sideToMove, board, allMoves);
+            }
+        }
+
+        internal static void AddQueenMoves(Position position, List<Move> allMoves)
+        {
+            Board board = position.Board;
+            Side sideToMove = position.SideToMove;
+            Bitboard queens = board[sideToMove, Piece.Queen];
+
+            int[] queenSources = queens.Serialize();
+            for (int i = 0; i < queenSources.Length; i++)
+            {
+                Square from = (Square)queenSources[i];
+                Bitboard attacks = SlidingPieceMoves.QueenAttacks(from, board.OccupiedSquares);
+                AddMovesFromAttacks(attacks, from, sideToMove, board, allMoves);
+            }
+        }
+
+        internal static void AddKingMoves(Position position, List<Move> allMoves)
+        {
+            Board board = position.Board;
+            Side sideToMove = position.SideToMove;
+            Bitboard king = board[sideToMove, Piece.King];
+
+            int[] kings = king.Serialize();
+            if (kings.Length == 0)
+                return;
+
+            int kingSource = kings[0];
+            Square from = (Square)kingSource;
+            Bitboard attacks = KingMoves.KingAttacks(from);
+            AddMovesFromAttacks(attacks, from, sideToMove, board, allMoves);
+        }
+
+        internal static void AddCastlingMoves(Position position, List<Move> allMoves)
+        {
+            Side side = position.SideToMove;
+            Board board = position.Board;
+
+            if (Castling.CanCastleKingside(position.CastlingRights, side))
+            {
+                var kingsideBetween = Castling.KingSideBetween(side);
+                bool spaceAvailable = BitUtils.IsASubsetOfB(kingsideBetween, board.EmptySquares);
+
+                var kingsideChecks = Castling.KingSideChecks(side);
+                Bitboard enemyAttacks = board.AttacksBy(position.OpposingSide);
+                bool avoidsChecks = (kingsideChecks & enemyAttacks) == 0;
+
+                if (spaceAvailable && avoidsChecks)
                 {
-                    Square to = (Square)targetSquares[t];
-                    bool isCapture = (Bitboard.FromSquare(to) & board.OpposingPieces(sideToMove)) != 0;
-                    var flags = isCapture ? MoveFlags.Capture : MoveFlags.QuietMove;
-                    allMoves.Add(new Move(from, to, flags));                    
+                    Bitboard king = board[side, Piece.King];
+                    Bitboard castleTarget = king.EastOne().EastOne();
+                    Square from = (Square)king.Serialize()[0];
+                    Square to = (Square)castleTarget.Serialize()[0];
+
+                    allMoves.Add(new Move(from, to, MoveFlags.KingCastle));
+                }
+            }
+
+            if (Castling.CanCastleQueenside(position.CastlingRights, side))
+            {
+                var queensideBetween = Castling.QueenSideBetween(side);
+                bool spaceAvailable = BitUtils.IsASubsetOfB(queensideBetween, board.EmptySquares);
+
+                var queensideChecks = Castling.QueenSideChecks(side);
+                bool avoidsChecks = !BitUtils.IsASubsetOfB(queensideChecks, board.AttacksBy(position.OpposingSide));
+
+                if (spaceAvailable && avoidsChecks)
+                {
+                    Bitboard king = board[side, Piece.King];
+                    Bitboard castleTarget = king.WestOne().WestOne();
+                    Square from = (Square)king.Serialize()[0];
+                    Square to = (Square)castleTarget.Serialize()[0];
+
+                    allMoves.Add(new Move(from, to, MoveFlags.QueenCastle));
                 }
             }
         }
 
+        private static void AddMovesFromAttacks(Bitboard attacks, Square from, Side sideToMove, Board board, List<Move> allMoves)
+        {
+            Bitboard validAttacks = attacks & ~board.FriendlyPieces(sideToMove);
+
+            int[] targetSquares = validAttacks.Serialize();
+            for (int t = 0; t < targetSquares.Length; t++)
+            {
+                Square to = (Square)targetSquares[t];
+                bool isCapture = (Bitboard.FromSquare(to) & board.OpposingPieces(sideToMove)) != 0;
+                var flags = isCapture ? MoveFlags.Capture : MoveFlags.QuietMove;
+                allMoves.Add(new Move(from, to, flags));
+            }
+        }
 
         private static bool IsFinalRank(Square square) => (int)square < 8 || (int)square >= 56;
     }

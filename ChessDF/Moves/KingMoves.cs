@@ -20,11 +20,11 @@ namespace ChessDF.Moves
             }
         }
 
-        private static Bitboard KingAttacks(Bitboard kingSet)
+        public static Bitboard KingAttacks(Bitboard king)
         {
-            Bitboard attacks = kingSet.EastOne() | kingSet.WestOne();
-            kingSet |= attacks;
-            attacks |= kingSet.NortOne() | kingSet.SoutOne();
+            Bitboard attacks = king.EastOne() | king.WestOne();
+            king |= attacks;
+            attacks |= king.NortOne() | king.SoutOne();
             return attacks;
         }
 

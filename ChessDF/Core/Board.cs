@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChessDF.Moves;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -62,6 +63,18 @@ namespace ChessDF.Core
             BlackKing = new Bitboard(0x10_00_00_00_00_00_00_00)
         };
 
+        public Bitboard AttacksBy(Side side)
+        {
+            Bitboard pawnAttacks = PawnMoves.AllPawnAttacks(this[side, Piece.Pawn], side);
+            Bitboard knightAttacks = KnightMoves.AllKnightAttacks(this[side, Piece.Knight]);
+            Bitboard bishopAttacks = SlidingPieceMoves.AllBishopAttacks(this[side, Piece.Bishop], this.OccupiedSquares);
+            Bitboard rookAttacks = SlidingPieceMoves.AllRookAttacks(this[side, Piece.Rook], this.OccupiedSquares);
+            Bitboard queenAttacks = SlidingPieceMoves.AllQueenAttacks(this[side, Piece.Queen], this.OccupiedSquares);
+            Bitboard kingAttacks = KingMoves.KingAttacks(this[side, Piece.King]);
+
+            return pawnAttacks | knightAttacks | bishopAttacks | rookAttacks | queenAttacks | kingAttacks;
+        }
+
         public override bool Equals(object? obj)
         {
             return Equals(obj as Board);
@@ -72,16 +85,16 @@ namespace ChessDF.Core
             if (other is null)
                 return false;
 
-            bool equal = true;
             for (int i = 0; i < 2; i++)
             {
                 for (int j = 0; j < 6; j++)
                 {
-                    equal = equal && _pieceBB[i, j] == other._pieceBB[i, j];
+                    if (_pieceBB[i, j] != other._pieceBB[i, j])
+                        return false;
                 }
             }
 
-            return equal;
+            return true;
         }
 
         public override int GetHashCode()

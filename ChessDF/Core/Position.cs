@@ -7,5 +7,13 @@ using System.Threading.Tasks;
 
 namespace ChessDF.Core
 {
-    public record Position(Board Board, Side SideToMove, Square? EnPassantSquare, CastlingRights CastlingRights, int HalfmoveClock);
+    public record Position(Board Board, Side SideToMove, Square? EnPassantSquare, CastlingRights CastlingRights, int HalfmoveClock)
+    {
+        public Side OpposingSide => SideToMove switch
+        {
+            Side.White => Side.Black,
+            Side.Black => Side.White,
+            _ => throw new IndexOutOfRangeException(nameof(SideToMove))
+        };
+    }
 }

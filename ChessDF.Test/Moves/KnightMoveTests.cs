@@ -26,5 +26,17 @@ namespace ChessDF.Test.Moves
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, attacks);
         }
+
+        [Theory]
+        [InlineData(0x00_00_04_08_08_02_48_00, 0x0a_15_36_37_be_36_1c_37)]
+        [InlineData(0x00_00_08_00_00_00_42_00, 0x14_22_00_22_b5_18_00_18)]
+        public void CanGetAllKnightMoves(ulong knights, ulong expectedAttacks)
+        {
+            // Act
+            var attacks = KnightMoves.AllKnightAttacks(knights);
+
+            // Assert
+            Assert.Equal<Bitboard>(expectedAttacks, attacks);
+        }
     }
 }

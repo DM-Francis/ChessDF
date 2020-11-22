@@ -108,5 +108,17 @@ namespace ChessDF.Test.Moves
             Assert.Throws<ArgumentOutOfRangeException>(() => PawnMoves.WhitePawnAttacks(pawnSquare));
             Assert.Throws<ArgumentOutOfRangeException>(() => PawnMoves.BlackPawnAttacks(pawnSquare));
         }
+
+        [Theory]
+        [InlineData(0x00_40_00_20_19_00_84_00, Side.White, 0xa0_00_50_3e_00_4a_00_00)]
+        [InlineData(0x00_00_c4_21_08_22_00_00, Side.Black, 0x00_00_00_ea_52_14_55_00)]
+        public void CanGetAllPawnAttacks(ulong pawns, Side side, ulong expectedAttacks)
+        {
+            // Act
+            var attacks = PawnMoves.AllPawnAttacks(pawns, side);
+
+            // Assert
+            Assert.Equal<Bitboard>(expectedAttacks, attacks);
+        }
     }
 }
