@@ -19,6 +19,15 @@ namespace ChessDF.Core
             _bits = bits;
         }
 
+        public static Bitboard FromSquare(Square square) => (ulong)1 << (int)square;
+        public static Bitboard FromSquare(Square? square)
+        {
+            if (square is not null)
+                return (ulong)1 << (int)square;
+            else
+                return 0;
+        }
+
         public bool IsEmpty() => _bits == 0;
         public int PopCount()
         {

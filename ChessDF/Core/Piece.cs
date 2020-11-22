@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChessDF.Core
 {
-    public enum Piece : byte
+    public enum Piece
     {
         Pawn,
         Knight,

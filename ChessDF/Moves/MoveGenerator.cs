@@ -9,22 +9,32 @@ namespace ChessDF.Moves
 {
     public class MoveGenerator
     {
-        public List<Move> GenerateAllMovesForPosition(Board board, Side sideToPlay)
+        public List<Move> GenerateAllMovesForPosition(Position position)
         {
             var allMoves = new List<Move>();
 
-            // Generate pawn moves
-            Bitboard pawns = board[sideToPlay, Piece.Pawn];
+            AddAllPawnMoves(position, allMoves);
+            AddKnightMoves(position, allMoves);
+
+            return allMoves;
+        }
+
+        private static void AddAllPawnMoves(Position position, List<Move> allMoves)
+        {
+            Board board = position.Board;
+            Side sideToMove = position.SideToMove;
+            Bitboard enPassantTarget = Bitboard.FromSquare(position.EnPassantSquare);
+            Bitboard pawns = board[sideToMove, Piece.Pawn];
 
             // Single pushes
-            Bitboard singlePawnPushTargets = PawnMoves.PawnSinglePushTargets(pawns, board.EmptySquares, sideToPlay);
-            Bitboard singlePawnPushSources = sideToPlay == Side.White ? singlePawnPushTargets.SoutOne() : singlePawnPushTargets.NortOne();
-            AddPawnMoves(singlePawnPushTargets, singlePawnPushSources, allMoves, false);
+            Bitboard singlePawnPushTargets = PawnMoves.PawnSinglePushTargets(pawns, board.EmptySquares, sideToMove);
+            Bitboard singlePawnPushSources = sideToMove == Side.White ? singlePawnPushTargets.SoutOne() : singlePawnPushTargets.NortOne();
+            AddPawnPushes(singlePawnPushTargets, singlePawnPushSources, allMoves, false);
 
             // Double pushes
-            Bitboard doublePawnPushTargets = PawnMoves.PawnDoublePushTargets(pawns, board.EmptySquares, sideToPlay);
-            Bitboard doublePawnPushSources = sideToPlay == Side.White ? doublePawnPushTargets.SoutOne().SoutOne() : doublePawnPushTargets.NortOne().NortOne();
-            AddPawnMoves(doublePawnPushTargets, doublePawnPushSources, allMoves, true);
+            Bitboard doublePawnPushTargets = PawnMoves.PawnDoublePushTargets(pawns, board.EmptySquares, sideToMove);
+            Bitboard doublePawnPushSources = sideToMove == Side.White ? doublePawnPushTargets.SoutOne().SoutOne() : doublePawnPushTargets.NortOne().NortOne();
+            AddPawnPushes(doublePawnPushTargets, doublePawnPushSources, allMoves, true);
 
             // Pawn captures
             int[] pawnSquares = pawns.Serialize();
@@ -32,12 +42,12 @@ namespace ChessDF.Moves
             {
                 Square from = (Square)pawnSquares[p];
                 Bitboard validAttacks;
-                if (sideToPlay == Side.White)
-                    validAttacks = PawnMoves.WhitePawnAttacks(from) & board.BlackPieces;
-                else if (sideToPlay == Side.Black)
-                    validAttacks = PawnMoves.BlackPawnAttacks(from) & board.WhitePieces;
+                if (sideToMove == Side.White)
+                    validAttacks = PawnMoves.WhitePawnAttacks(from) & (board.BlackPieces | enPassantTarget);
+                else if (sideToMove == Side.Black)
+                    validAttacks = PawnMoves.BlackPawnAttacks(from) & (board.WhitePieces | enPassantTarget);
                 else
-                    throw new ArgumentOutOfRangeException(nameof(sideToPlay));
+                    throw new IndexOutOfRangeException(nameof(sideToMove));
 
                 int[] targetSquares = validAttacks.Serialize();
                 for (int t = 0; t < targetSquares.Length; t++)
@@ -56,15 +66,14 @@ namespace ChessDF.Moves
                     }
                     else
                     {
-                        allMoves.Add(new Move(from, to, MoveFlags.Capture));
+                        var flags = to == position.EnPassantSquare ? MoveFlags.EnPassantCapture : MoveFlags.Capture;
+                        allMoves.Add(new Move(from, to, flags));
                     }
                 }
             }
-
-            return allMoves;
         }
 
-        private static void AddPawnMoves(Bitboard pawnTargets, Bitboard pawnSources, List<Move> allMoves, bool isDoublePush)
+        private static void AddPawnPushes(Bitboard pawnTargets, Bitboard pawnSources, List<Move> allMoves, bool isDoublePush)
         {
             int[] pushSourceSq = pawnSources.Serialize();
             int[] pushTargetSq = pawnTargets.Serialize();
@@ -92,6 +101,31 @@ namespace ChessDF.Moves
                 }
             }
         }
+
+        private static void AddKnightMoves(Position position, List<Move> allMoves)
+        {
+            Board board = position.Board;
+            Side sideToMove = position.SideToMove;
+            Bitboard knights = board[sideToMove, Piece.Knight];
+
+            int[] knightSources = knights.Serialize();
+            for (int i = 0; i < knightSources.Length; i++)
+            {
+                Square from = (Square)knightSources[i];
+                Bitboard attacks = KnightMoves.KnightAttacks(from);
+                Bitboard validAttacks = attacks & ~board.FriendlyPieces(sideToMove);
+
+                int[] targetSquares = validAttacks.Serialize();
+                for (int t = 0; t < targetSquares.Length; t++)
+                {
+                    Square to = (Square)targetSquares[t];
+                    bool isCapture = (Bitboard.FromSquare(to) & board.OpposingPieces(sideToMove)) != 0;
+                    var flags = isCapture ? MoveFlags.Capture : MoveFlags.QuietMove;
+                    allMoves.Add(new Move(from, to, flags));                    
+                }
+            }
+        }
+
 
         private static bool IsFinalRank(Square square) => (int)square < 8 || (int)square >= 56;
     }

@@ -93,5 +93,38 @@ namespace ChessDF.Test
 
             singleBits.Should().BeEquivalentTo(expected);
         }
+
+        [Theory]
+        [InlineData(Square.a1, 0x00_00_00_00_00_00_00_01)]
+        [InlineData(Square.h8, 0x80_00_00_00_00_00_00_00)]
+        [InlineData(Square.d5, 0x00_00_00_08_00_00_00_00)]
+        [InlineData(Square.h1, 0x00_00_00_00_00_00_00_80)]
+        [InlineData(Square.a8, 0x01_00_00_00_00_00_00_00)]
+        [InlineData(Square.b3, 0x00_00_00_00_00_02_00_00)]
+        public void CanGenerateBitboardFromSquare(Square square, ulong expectedBitboard)
+        {
+            // Act
+            var bb = Bitboard.FromSquare(square);
+
+            // Assert
+            Assert.Equal<Bitboard>(expectedBitboard, bb);
+        }
+
+        [Theory]
+        [InlineData(null, 0)]
+        [InlineData(Square.a1, 0x00_00_00_00_00_00_00_01)]
+        [InlineData(Square.h8, 0x80_00_00_00_00_00_00_00)]
+        [InlineData(Square.d5, 0x00_00_00_08_00_00_00_00)]
+        [InlineData(Square.h1, 0x00_00_00_00_00_00_00_80)]
+        [InlineData(Square.a8, 0x01_00_00_00_00_00_00_00)]
+        [InlineData(Square.b3, 0x00_00_00_00_00_02_00_00)]
+        public void CanGenerateBitboardFromNullableSquare(Square? square, ulong expectedBitboard)
+        {
+            // Act
+            var bb = Bitboard.FromSquare(square);
+
+            // Assert
+            Assert.Equal<Bitboard>(expectedBitboard, bb);
+        }
     }
 }

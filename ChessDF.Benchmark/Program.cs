@@ -7,7 +7,9 @@ namespace ChessDF.Benchmark
     {
         static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<BitboardLoopBenchmark>();
+            // BenchmarkRunner.Run<BitboardLoopBenchmark>();
+            //BenchmarkRunner.Run<MoveTypeBenchmark>();
+            BenchmarkRunner.Run<EnumCastBenchmark>();
         }
     }
 }
