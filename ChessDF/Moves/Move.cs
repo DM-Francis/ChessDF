@@ -61,5 +61,7 @@ namespace ChessDF.Moves
         {
             return !(left == right);
         }
+
+        public override string ToString() => $"{From}->{To}";
     }
 }

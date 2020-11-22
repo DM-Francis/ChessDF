@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace ChessDF.Core
 {
-    public class Board
+    public class Board : IEquatable<Board?>
     {
         private readonly Bitboard[,] _pieceBB = new Bitboard[2, 6];
-        public Bitboard EnpassantSquare { get; set; }
 
         public Bitboard WhitePawns { get => _pieceBB[0, 0]; init => _pieceBB[0, 0] = value; }
         public Bitboard WhiteKnights { get => _pieceBB[0, 1]; init => _pieceBB[0, 1] = value; }
@@ -31,23 +29,21 @@ namespace ChessDF.Core
         public Bitboard OccupiedSquares => WhitePieces | BlackPieces;
         public Bitboard EmptySquares => ~OccupiedSquares;
 
-        public Bitboard this[Side side, Piece piece]
+        public Bitboard FriendlyPieces(Side side) => side switch
         {
-            get
-            {
-                int sideIndex = (int)side;
-                return piece switch
-                {
-                    Piece.Pawn => _pieceBB[sideIndex, 0],
-                    Piece.Knight => _pieceBB[sideIndex, 1],
-                    Piece.Bishop => _pieceBB[sideIndex, 2],
-                    Piece.Rook => _pieceBB[sideIndex, 3],
-                    Piece.Queen => _pieceBB[sideIndex, 4],
-                    Piece.King => _pieceBB[sideIndex, 5],
-                    _ => throw new ArgumentOutOfRangeException(nameof(piece))
-                };
-            }
-        }
+            Side.White => WhitePieces,
+            Side.Black => BlackPieces,
+            _ => throw new ArgumentOutOfRangeException(nameof(side))
+        };
+
+        public Bitboard OpposingPieces(Side side) => side switch
+        {
+            Side.White => BlackPieces,
+            Side.Black => WhitePieces,
+            _ => throw new ArgumentOutOfRangeException(nameof(side))
+        };
+
+        public Bitboard this[Side side, Piece piece] => _pieceBB[(int)side, (int)piece];
 
         public static Board StartingPosition => new Board
         {
@@ -65,5 +61,45 @@ namespace ChessDF.Core
             BlackQueens = new Bitboard(0x08_00_00_00_00_00_00_00),
             BlackKing = new Bitboard(0x10_00_00_00_00_00_00_00)
         };
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as Board);
+        }
+
+        public bool Equals(Board? other)
+        {
+            if (other is null)
+                return false;
+
+            bool equal = true;
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 6; j++)
+                {
+                    equal = equal && _pieceBB[i, j] == other._pieceBB[i, j];
+                }
+            }
+
+            return equal;
+        }
+
+        public override int GetHashCode()
+        {
+            int blackPiecesHashcode = HashCode.Combine(BlackPawns, BlackKnights, BlackBishops, BlackRooks, BlackQueens, BlackKing);
+            int whitePiecesHashcode = HashCode.Combine(WhitePawns, WhiteKnights, WhiteBishops, WhiteRooks, WhiteQueens, WhiteKing);
+
+            return HashCode.Combine(blackPiecesHashcode, whitePiecesHashcode);
+        }
+
+        public static bool operator ==(Board? left, Board? right)
+        {
+            return EqualityComparer<Board>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(Board? left, Board? right)
+        {
+            return !(left == right);
+        }
     }
 }
