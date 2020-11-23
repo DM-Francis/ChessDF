@@ -1,3 +1,5 @@
+using ChessDF.Core;
+using ChessDF.Moves;
 using System;
 using Xunit;
 
@@ -17,8 +19,8 @@ namespace ChessDF.Test
             // Assert
             Assert.Equal("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", fen.PiecePlacement);
             Assert.Equal(Side.White, fen.ActiveSide);
-            Assert.Equal("KQkq", fen.CastlingAvailability);
-            Assert.Equal("-", fen.EnpassantTargetSquare);
+            Assert.Equal(CastlingRights.All, fen.CastlingAvailability);
+            Assert.Null(fen.EnpassantTargetSquare);
             Assert.Equal(0, fen.HalfmoveClock);
             Assert.Equal(1, fen.FullmoveNumber);
         }

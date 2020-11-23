@@ -9,7 +9,9 @@ namespace ChessDF.Benchmark
         {
             // BenchmarkRunner.Run<BitboardLoopBenchmark>();
             //BenchmarkRunner.Run<MoveTypeBenchmark>();
-            BenchmarkRunner.Run<EnumCastBenchmark>();
+            //BenchmarkRunner.Run<EnumCastBenchmark>();
+
+            BenchmarkRunner.Run<MoveGeneratorBenchmarks>();
         }
     }
 }

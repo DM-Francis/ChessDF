@@ -28,10 +28,11 @@ namespace ChessDF.Core
                 return 0;
         }
 
-        public bool IsEmpty() => _bits == 0;
+        public bool IsEmpty => _bits == 0;
+
         public int PopCount()
         {
-            if (IsEmpty())
+            if (IsEmpty)
                 return 0;
 
             int count = 0;
@@ -71,7 +72,7 @@ namespace ChessDF.Core
         {
             var output = new int[PopCount()];
 
-            if (IsEmpty())
+            if (IsEmpty)
                 return output;
 
             int i = 0;

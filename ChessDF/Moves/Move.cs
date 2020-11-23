@@ -22,6 +22,7 @@ namespace ChessDF.Moves
 
         public bool IsCapture => (Flags & MoveFlags.Capture) != 0;
         public bool IsPromotion => (Flags & MoveFlags.KnightPromotion) != 0;
+        public bool IsAnyCastle => Flags == MoveFlags.KingCastle || Flags == MoveFlags.QueenCastle;
 
         public override bool Equals(object? obj) => obj is Move move && Equals(move);
         public bool Equals(Move other) => _moveData == other._moveData;

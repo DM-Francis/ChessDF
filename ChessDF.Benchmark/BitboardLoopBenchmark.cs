@@ -43,7 +43,7 @@ namespace ChessDF.Benchmark
         {
             var output = new List<int>(_bitboard.PopCount());
 
-            if (_bitboard.IsEmpty())
+            if (_bitboard.IsEmpty)
                 return output;
 
             ulong x = _bitboard;
@@ -64,7 +64,7 @@ namespace ChessDF.Benchmark
         {
             var output = new int[_bitboard.PopCount()];
 
-            if (_bitboard.IsEmpty())
+            if (_bitboard.IsEmpty)
                 return output;
 
             int i = 0;
@@ -86,7 +86,7 @@ namespace ChessDF.Benchmark
         {
             var output = new List<int>(_bitboard.PopCount());
 
-            if (_bitboard.IsEmpty())
+            if (_bitboard.IsEmpty)
                 return output;
 
             Bitboard[] list = _bitboard.IndividualBits();

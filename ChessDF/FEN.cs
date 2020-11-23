@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ChessDF.Core;
+using ChessDF.Moves;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,18 +12,19 @@ namespace ChessDF
 
         public string PiecePlacement { get; }
         public Side ActiveSide { get; }
-        public string CastlingAvailability { get; }
-        public string EnpassantTargetSquare { get; }
+        public CastlingRights CastlingAvailability { get; }
+        public Square? EnpassantTargetSquare { get; }
         public int HalfmoveClock { get; }
         public int FullmoveNumber { get; }
 
         public FEN(string fenString)
         {
+            fenString = fenString.Trim();
             string[] fenFields = fenString.Split(' ');
 
-            if (fenFields.Length != 6)
+            if (fenFields.Length != 4 && fenFields.Length != 6)
             {
-                throw new ArgumentException("Invalid FEN: Must contain all 6 space-separated fields.");
+                throw new ArgumentException("Invalid FEN: Must contain either 4 or 6 space-separated fields.");
             }
 
             PiecePlacement = fenFields[0];
@@ -31,8 +34,15 @@ namespace ChessDF
                 "b" => Side.Black,
                 _ => throw new ArgumentException($"Invalid FEN: {nameof(ActiveSide)} can only be 'w' or 'b'.")
             };
-            CastlingAvailability = fenFields[2];
-            EnpassantTargetSquare = fenFields[3];
+            CastlingAvailability = CreateCastlingRightsFromString(fenFields[2]);
+
+            if (Enum.TryParse(fenFields[3], out Square enPassantSquare))
+                EnpassantTargetSquare = enPassantSquare;
+            else
+                EnpassantTargetSquare = null;
+
+            if (fenFields.Length == 4)
+                return;
             
             if (!int.TryParse(fenFields[4], out int halfmove) || halfmove < 0)
             {
@@ -49,6 +59,16 @@ namespace ChessDF
             FullmoveNumber = fullmove;
         }
 
+        public FEN(string piecePlacement, Side activeSide, CastlingRights castlingAvailability, Square? enpassantTargetSquare, int halfmoveClock, int fullmoveNumber)
+        {
+            PiecePlacement = piecePlacement;
+            ActiveSide = activeSide;
+            CastlingAvailability = castlingAvailability;
+            EnpassantTargetSquare = enpassantTargetSquare;
+            HalfmoveClock = halfmoveClock;
+            FullmoveNumber = fullmoveNumber;
+        }
+
         public override string ToString()
         {
             string colorString = ActiveSide switch
@@ -58,7 +78,34 @@ namespace ChessDF
                 _ => "?"
             };
 
-            return string.Join(' ', new string[] { PiecePlacement, colorString, CastlingAvailability, EnpassantTargetSquare, HalfmoveClock.ToString(), FullmoveNumber.ToString() });
+            string castling = CreateStringFromCastlingRights(CastlingAvailability);
+            string enPassantString = EnpassantTargetSquare?.ToString() ?? "-";
+
+            return string.Join(' ', new string[] { PiecePlacement, colorString, castling, enPassantString, HalfmoveClock.ToString(), FullmoveNumber.ToString() });
+        }
+
+        private static CastlingRights CreateCastlingRightsFromString(string castlingRightsString)
+        {
+            CastlingRights whiteKing = castlingRightsString.Contains('K') ? CastlingRights.WhiteKingSide : 0;
+            CastlingRights whiteQueen = castlingRightsString.Contains('Q') ? CastlingRights.WhiteQueenSide : 0;
+            CastlingRights blackKing = castlingRightsString.Contains('k') ? CastlingRights.BlackKingSide : 0;
+            CastlingRights blackQueen = castlingRightsString.Contains('q') ? CastlingRights.BlackQueenSide : 0;
+
+            return whiteKing | whiteQueen | blackKing | blackQueen;
+        }
+
+        private static string CreateStringFromCastlingRights(CastlingRights castlingRights)
+        {
+            string output = "";
+            if (castlingRights.HasFlag(CastlingRights.WhiteKingSide)) output += 'K';
+            if (castlingRights.HasFlag(CastlingRights.WhiteQueenSide)) output += 'Q';
+            if (castlingRights.HasFlag(CastlingRights.BlackKingSide)) output += 'k';
+            if (castlingRights.HasFlag(CastlingRights.BlackQueenSide)) output += 'q';
+
+            if (string.IsNullOrEmpty(output))
+                return "-";
+            else
+                return output;            
         }
     }
 }

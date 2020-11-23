@@ -16,7 +16,6 @@ namespace ChessDF.Test.Moves
         public void CanGeneratePawnMovesForBasicPosition()
         {
             // Assemble
-            var generator = new MoveGenerator();
             var board = new Board
             {
                 WhitePawns = 0x00_00_00_00_00_00_ff_00,
@@ -26,7 +25,7 @@ namespace ChessDF.Test.Moves
             var position = new Position(board, Side.White, null, CastlingRights.None, 0);
 
             // Act
-            var moves = generator.GenerateAllMovesForPosition(position);
+            var moves = MoveGenerator.GetAllMoves(position);
 
             // Assert
             moves.Should().HaveCount(16);
@@ -37,7 +36,6 @@ namespace ChessDF.Test.Moves
         public void CanGeneratePawnMovesForPositionWhite()
         {
             // Assemble
-            var generator = new MoveGenerator();
             var board = new Board
             {
                 WhitePawns = 0x00_00_00_01_04_0a_f0_00,
@@ -47,7 +45,7 @@ namespace ChessDF.Test.Moves
             var position = new Position(board, Side.White, null, CastlingRights.None, 0);
 
             // Act
-            var moves = generator.GenerateAllMovesForPosition(position);
+            var moves = MoveGenerator.GetAllMoves(position);
 
             // Assert
             moves.Should().HaveCount(11);
@@ -58,7 +56,6 @@ namespace ChessDF.Test.Moves
         public void CanGeneratePawnMovesForPositionBlack()
         {
             // Assemble
-            var generator = new MoveGenerator();
             var board = new Board
             {
                 WhitePawns = 0x00_00_00_01_04_0a_f0_00,
@@ -68,7 +65,7 @@ namespace ChessDF.Test.Moves
             var position = new Position(board, Side.Black, null, CastlingRights.None, 0);
 
             // Act
-            var moves = generator.GenerateAllMovesForPosition(position);
+            var moves = MoveGenerator.GetAllMoves(position);
 
             // Assert
             moves.Should().HaveCount(9);
@@ -79,7 +76,6 @@ namespace ChessDF.Test.Moves
         public void CanGeneratePawnMovesForBasicPositionWithPromotions()
         {
             // Assemble
-            var generator = new MoveGenerator();
             var board = new Board
             {
                 WhitePawns = 0x00_12_20_00_00_00_00_00,
@@ -89,7 +85,7 @@ namespace ChessDF.Test.Moves
             var position = new Position(board, Side.White, null, CastlingRights.None, 0);
 
             // Act
-            var moves = generator.GenerateAllMovesForPosition(position);
+            var moves = MoveGenerator.GetAllMoves(position);
 
             // Assert
             moves.Should().HaveCount(13);
@@ -101,7 +97,6 @@ namespace ChessDF.Test.Moves
         public void CanGetMovesForPositionWithEnpassantWhite()
         {
             // Assemble
-            var generator = new MoveGenerator();
             var board = new Board
             {
                 WhitePawns = 0x00_00_00_04_00_00_00_00,
@@ -111,7 +106,7 @@ namespace ChessDF.Test.Moves
             var position = new Position(board, Side.White, Square.d6, CastlingRights.None, 0);
 
             // Act
-            var moves = generator.GenerateAllMovesForPosition(position);
+            var moves = MoveGenerator.GetAllMoves(position);
 
             // Assert
             moves.Should().HaveCount(2);
@@ -122,7 +117,6 @@ namespace ChessDF.Test.Moves
         public void CanGetMovesForPositionWithEnpassantBlack()
         {
             // Assemble
-            var generator = new MoveGenerator();
             var board = new Board
             {
                 WhitePawns = 0x00_00_00_00_01_00_00_00,
@@ -132,7 +126,7 @@ namespace ChessDF.Test.Moves
             var position = new Position(board, Side.Black, Square.a3, CastlingRights.None, 0);
 
             // Act
-            var moves = generator.GenerateAllMovesForPosition(position);
+            var moves = MoveGenerator.GetAllMoves(position);
 
             // Assert
             moves.Should().HaveCount(2);
@@ -143,7 +137,6 @@ namespace ChessDF.Test.Moves
         public void CanGetMovesForPositionWith2EnpassantWhite()
         {
             // Assemble
-            var generator = new MoveGenerator();
             var board = new Board
             {
                 WhitePawns = 0x00_00_00_14_00_00_00_00,
@@ -153,7 +146,7 @@ namespace ChessDF.Test.Moves
             var position = new Position(board, Side.White, Square.d6, CastlingRights.None, 0);
 
             // Act
-            var moves = generator.GenerateAllMovesForPosition(position);
+            var moves = MoveGenerator.GetAllMoves(position);
 
             // Assert
             moves.Should().HaveCount(4);
@@ -471,7 +464,7 @@ namespace ChessDF.Test.Moves
                 WhiteRooks = 0x00_00_00_00_00_00_00_81
             };
 
-            var position = new Position(board, Side.White, null, CastlingRights.White, 0);
+            var position = new Position(board, Side.White, null, CastlingRights.WhiteBoth, 0);
             var moves = new List<Move>();
 
             // Act
@@ -548,6 +541,86 @@ namespace ChessDF.Test.Moves
 
             // Assert
             moves.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void GeneratesCorrectMovesForStartingPosition()
+        {
+            // Assemble
+            var position = new Position(Board.StartingPosition, Side.White, null, CastlingRights.All, 0);
+
+            // Act
+            var moves = MoveGenerator.GetAllMoves(position);
+
+            // Assert
+            var expectedMoves = new List<Move>
+            {
+                new Move(Square.a2, Square.a3, MoveFlags.QuietMove),
+                new Move(Square.b2, Square.b3, MoveFlags.QuietMove),
+                new Move(Square.c2, Square.c3, MoveFlags.QuietMove),
+                new Move(Square.d2, Square.d3, MoveFlags.QuietMove),
+                new Move(Square.e2, Square.e3, MoveFlags.QuietMove),
+                new Move(Square.f2, Square.f3, MoveFlags.QuietMove),
+                new Move(Square.g2, Square.g3, MoveFlags.QuietMove),
+                new Move(Square.h2, Square.h3, MoveFlags.QuietMove),
+
+                new Move(Square.a2, Square.a4, MoveFlags.DoublePawnPush),
+                new Move(Square.b2, Square.b4, MoveFlags.DoublePawnPush),
+                new Move(Square.c2, Square.c4, MoveFlags.DoublePawnPush),
+                new Move(Square.d2, Square.d4, MoveFlags.DoublePawnPush),
+                new Move(Square.e2, Square.e4, MoveFlags.DoublePawnPush),
+                new Move(Square.f2, Square.f4, MoveFlags.DoublePawnPush),
+                new Move(Square.g2, Square.g4, MoveFlags.DoublePawnPush),
+                new Move(Square.h2, Square.h4, MoveFlags.DoublePawnPush),
+
+                new Move(Square.b1, Square.a3, MoveFlags.QuietMove),
+                new Move(Square.b1, Square.c3, MoveFlags.QuietMove),
+                new Move(Square.g1, Square.f3, MoveFlags.QuietMove),
+                new Move(Square.g1, Square.h3, MoveFlags.QuietMove),
+            };
+
+            moves.Should().BeEquivalentTo(expectedMoves);
+        }
+
+        [Fact]
+        public void GeneratesCorrectNumberOfMovesForKiwiPetePosition()
+        {
+            // Assemble
+            var position = Position.FromFENString("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
+
+            // Act
+            var moves = MoveGenerator.GetAllMoves(position);
+
+            // Assert
+            moves.Should().HaveCount(48);
+            moves.Where(m => m.IsCapture).Should().HaveCount(8);
+        }
+
+        [Fact]
+        public void GeneratesCorrectNumberOfMovesForPositionWithPossibleIllegalMoves()
+        {
+            // Assemble
+            var position = Position.FromFENString("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -");
+
+            // Act
+            var moves = MoveGenerator.GetAllMoves(position);
+
+            // Assert
+            moves.Should().HaveCount(14);
+            moves.Where(m => m.IsCapture).Should().HaveCount(1);
+        }
+
+        [Fact]
+        public void GeneratesCorrectNumberOfMovesForPositionWithPossiblePromotions()
+        {
+            // Assemble
+            var position = Position.FromFENString("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+
+            // Act
+            var moves = MoveGenerator.GetAllMoves(position);
+
+            // Assert
+            moves.Should().HaveCount(44);
         }
     }
 }

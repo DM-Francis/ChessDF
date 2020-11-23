@@ -1,13 +1,14 @@
 ﻿using ChessDF.Core;
 using ChessDF.Utils;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace ChessDF.Moves
 {
     public class MoveGenerator
     {
-        public List<Move> GenerateAllMovesForPosition(Position position)
+        public static List<Move> GetAllMoves(Position position)
         {
             var allMoves = new List<Move>();
 
@@ -19,10 +20,11 @@ namespace ChessDF.Moves
             AddKingMoves(position, allMoves);
             AddCastlingMoves(position, allMoves);
 
-            return allMoves;
+            var legalMoves = allMoves.Where(m => !MoveIsIllegal(m, position.Board, position.SideToMove)).ToList();
+            return legalMoves;
         }
 
-        private static void AddAllPawnMoves(Position position, List<Move> allMoves)
+        internal static void AddAllPawnMoves(Position position, List<Move> allMoves)
         {
             Board board = position.Board;
             Side sideToMove = position.SideToMove;
@@ -212,7 +214,8 @@ namespace ChessDF.Moves
                 bool spaceAvailable = BitUtils.IsASubsetOfB(queensideBetween, board.EmptySquares);
 
                 var queensideChecks = Castling.QueenSideChecks(side);
-                bool avoidsChecks = !BitUtils.IsASubsetOfB(queensideChecks, board.AttacksBy(position.OpposingSide));
+                Bitboard enemyAttacks = board.AttacksBy(position.OpposingSide);
+                bool avoidsChecks = (queensideChecks & enemyAttacks) == 0;
 
                 if (spaceAvailable && avoidsChecks)
                 {
@@ -241,5 +244,11 @@ namespace ChessDF.Moves
         }
 
         private static bool IsFinalRank(Square square) => (int)square < 8 || (int)square >= 56;
+
+        private static bool MoveIsIllegal(Move move, Board board, Side side)
+        {
+            var newBoard = Mover.ApplyMoveToBoard(board, move, out _);
+            return Mover.KingIsInCheck(side, newBoard);
+        }
     }
 }

@@ -15,7 +15,7 @@ namespace ChessDF.Moves
         BlackKingSide = 0b0100,
         BlackQueenSide = 0b1000,
         All = 0b1111,
-        White = 0b0011,
-        Black = 0b1100
+        WhiteBoth = 0b0011,
+        BlackBoth = 0b1100
     }
 }
