@@ -15,10 +15,13 @@ namespace ChessDF.Moves
         private static readonly Bitboard _kingSideChecks = 0x70;
         private static readonly Bitboard _queenSideChecks = 0x1c;
 
+        private static readonly Bitboard _kingSideRookFrom = 0x80;
+        private static readonly Bitboard _queenSideRookFrom = 0x01;
+
         private static readonly Bitboard _kingSideKingToFrom = 0x50;
         private static readonly Bitboard _kingSideRookToFrom = 0xa0;
-        private static readonly Bitboard _queenSideKingToFrom = 0x00_00_00_00_00_00_00_50;
-        private static readonly Bitboard _queenSideRookToFrom = 0x00_00_00_00_00_00_00_a0;
+        private static readonly Bitboard _queenSideKingToFrom = 0x14;
+        private static readonly Bitboard _queenSideRookToFrom = 0x09;
 
         public static Bitboard KingSideBetween(Side side) => side switch
         {
@@ -59,6 +62,20 @@ namespace ChessDF.Moves
         {
             Side.White => _queenSideKingToFrom,
             Side.Black => _queenSideKingToFrom.FlipVertical(),
+            _ => throw new ArgumentOutOfRangeException(nameof(side))
+        };
+
+        public static Bitboard KingSideRookFrom(Side side) => side switch
+        {
+            Side.White => _kingSideRookFrom,
+            Side.Black => _kingSideRookFrom.FlipVertical(),
+            _ => throw new ArgumentOutOfRangeException(nameof(side))
+        };
+
+        public static Bitboard QueenSideRookFrom(Side side) => side switch
+        {
+            Side.White => _queenSideRookFrom,
+            Side.Black => _queenSideRookFrom.FlipVertical(),
             _ => throw new ArgumentOutOfRangeException(nameof(side))
         };
 

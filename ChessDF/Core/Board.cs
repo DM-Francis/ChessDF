@@ -212,7 +212,7 @@ namespace ChessDF.Core
                     Bitboard sq = (ulong)1 << index;
                     if ((sq & OccupiedSquares) == 0)
                     {
-                        if (int.TryParse(outputString[^1].ToString(), out int emptyNum))
+                        if (outputString.Length != 0 && int.TryParse(outputString[^1].ToString(), out int emptyNum))
                             outputString[^1] = (emptyNum + 1).ToString()[0];
                         else
                             outputString.Append('1');

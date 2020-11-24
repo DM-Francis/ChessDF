@@ -622,5 +622,85 @@ namespace ChessDF.Test.Moves
             // Assert
             moves.Should().HaveCount(44);
         }
+
+        [Fact]
+        public void GeneratesAllCapturePromotions()
+        {
+            // Assemble
+            var position = Position.FromFENString("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+
+            // Act
+            var moves = MoveGenerator.GetAllMoves(position);
+
+            // Assert
+            var promotionMoves = new[]
+            {
+                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.KnightPromotion),
+                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.BishopPromotion),
+                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.QueenPromotion),
+                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.RookPromotion),
+            };
+
+            moves.Should().Contain(promotionMoves);
+        }
+
+        [Fact]
+        public void GeneratesAllStandardPromotions()
+        {
+            // Assemble
+            var position = Position.FromFENString("rnb2k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w - - 0 1 ");
+
+            // Act
+            var moves = MoveGenerator.GetAllMoves(position);
+
+            // Assert
+            var promotionMoves = new[]
+            {
+                new Move(Square.d7, Square.d8, MoveFlags.KnightPromotion),
+                new Move(Square.d7, Square.d8, MoveFlags.BishopPromotion),
+                new Move(Square.d7, Square.d8, MoveFlags.QueenPromotion),
+                new Move(Square.d7, Square.d8, MoveFlags.RookPromotion),
+            };
+
+            moves.Should().Contain(promotionMoves);
+        }
+
+        [Fact]
+        public void CanIdentifyAllCastleMovesWhite()
+        {
+            // Assemble
+            var position = Position.FromFENString("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1 ");
+
+            // Act
+            var moves = MoveGenerator.GetAllMoves(position);
+
+            // Assert
+            var castlingMoves = new[]
+            {
+                new Move(Square.e1, Square.g1, MoveFlags.KingCastle),
+                new Move(Square.e1, Square.c1, MoveFlags.QueenCastle)
+            };
+
+            moves.Should().Contain(castlingMoves);
+        }
+
+        [Fact]
+        public void CanIdentifyAllCastleMovesBlack()
+        {
+            // Assemble
+            var position = Position.FromFENString("r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1 ");
+
+            // Act
+            var moves = MoveGenerator.GetAllMoves(position);
+
+            // Assert
+            var castlingMoves = new[]
+            {
+                new Move(Square.e8, Square.g8, MoveFlags.KingCastle),
+                new Move(Square.e8, Square.c8, MoveFlags.QueenCastle)
+            };
+
+            moves.Should().Contain(castlingMoves);
+        }
     }
 }

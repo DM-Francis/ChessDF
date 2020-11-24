@@ -48,7 +48,7 @@ namespace ChessDF.Test.Moves
         }
 
         [Fact]
-        public void CreatesCorrectPositionAfterCastling()
+        public void CreatesCorrectPositionAfterCastlingKingSide()
         {
             // Assemble
             var position = Position.FromFENString("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
@@ -65,6 +65,87 @@ namespace ChessDF.Test.Moves
             newPosition.HalfmoveClock.Should().Be(2);
             newPosition.CastlingRights.Should().Be(CastlingRights.None);
             newPosition.Board.Should().Be(expectedBoard);
+        }
+
+        [Fact]
+        public void CreatesCorrectPositionAfterCastlingQueenSide()
+        {
+            // Assemble
+            var position = Position.FromFENString("rnbq1k1r/pp1Pbppp/2p5/8/1QB2B2/2N5/PP2N1PP/R3K2R w KQ - 2 8 ");
+            var move = new Move(Square.e1, Square.c1, MoveFlags.QueenCastle);
+
+            // Act
+            var newPosition = Mover.MakeMove(position, move);
+
+            // Assert
+            var expectedPosition = Position.FromFENString("rnbq1k1r/pp1Pbppp/2p5/8/1QB2B2/2N5/PP2N1PP/2KR3R b - - 3 8 ");
+
+            Assert.Equal(expectedPosition, newPosition);
+        }
+
+        [Fact]
+        public void CorrectlyUpdatesBoardWithPromotion()
+        {
+            // Assemble
+            var position = Position.FromFENString("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+            var move = new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.KnightPromotion);
+
+            // Act
+            var newPosition = Mover.MakeMove(position, move);
+
+            // Assert
+            var expectedPosition = Position.FromFENString("rnNq1k1r/pp2bppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R b KQ - 0 8");
+
+            Assert.Equal(expectedPosition, newPosition);
+        }
+
+
+        [Fact]
+        public void CastlingRightsAreCorrectAfterMovingKingRook()
+        {
+            // Assemble
+            var position = Position.FromFENString("rnbq1k1r/pp1Pbppp/2p5/8/1QB2B2/2N5/PP2N1PP/R3K2R w KQ - 2 8 ");
+            var move = new Move(Square.h1, Square.f1, MoveFlags.QuietMove);
+
+            // Act
+            var newPosition = Mover.MakeMove(position, move);
+
+            // Assert
+            var expectedPosition = Position.FromFENString("rnbq1k1r/pp1Pbppp/2p5/8/1QB2B2/2N5/PP2N1PP/R3KR2 b Q - 3 8 ");
+
+            Assert.Equal(expectedPosition, newPosition);
+        }
+
+        [Fact]
+        public void CastlingRightsAreCorrectAfterMovingQueenRook()
+        {
+            // Assemble
+            var position = Position.FromFENString("r3kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1 ");
+            var move = new Move(Square.a8, Square.c8, MoveFlags.QuietMove);
+
+            // Act
+            var newPosition = Mover.MakeMove(position, move);
+
+            // Assert
+            var expectedPosition = Position.FromFENString("2r1kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQk - 1 2 ");
+
+            Assert.Equal(expectedPosition, newPosition);
+        }
+
+        [Fact]
+        public void CastlingRightsAreCorrectAfterRookIsCaptured()
+        {
+            // Assemble
+            var position = Position.FromFENString("rnbqkbnr/ppppppPp/8/8/8/8/PPPPPP1P/RNBQKBNR w KQkq - 0 1 ");
+            var move = new Move(Square.g7, Square.h8, MoveFlags.Capture | MoveFlags.BishopPromotion);
+
+            // Act
+            var newPosition = Mover.MakeMove(position, move);
+
+            // Assert
+            var expectedPosition = Position.FromFENString("rnbqkbnB/pppppp1p/8/8/8/8/PPPPPP1P/RNBQKBNR b KQq - 0 1 ");
+
+            Assert.Equal(expectedPosition, newPosition);
         }
     }
 }

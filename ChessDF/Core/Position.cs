@@ -29,6 +29,8 @@ namespace ChessDF.Core
             };
         }
 
+        public static Position StartPosition => FromFENString(FEN.StartingPosition.ToString());
+
         public string ToFENString()
             => new FEN(Board.ToPiecePlacementString(), SideToMove, CastlingRights, EnPassantSquare, HalfmoveClock, FullMoveNumber).ToString();
     }

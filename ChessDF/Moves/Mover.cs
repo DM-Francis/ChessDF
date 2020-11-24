@@ -35,20 +35,44 @@ namespace ChessDF.Moves
 
             if (fromPiece == Piece.King)
             {
-                castlingRights &= position.SideToMove switch
-                {
-                    Side.White => ~CastlingRights.WhiteBoth,
-                    Side.Black => ~CastlingRights.BlackBoth,
-                    _ => throw new IndexOutOfRangeException(nameof(position.SideToMove))
-                };
+                castlingRights = castlingRights.RemoveBoth(position.SideToMove);
             }
+
+            castlingRights = UpdateCastlingRightsForBothSides(newBoard, castlingRights);
 
             if (fromPiece == Piece.Pawn || move.IsCapture)
                 halfMoveClock = 0;
             else
                 halfMoveClock++;
 
-            return new Position(newBoard, position.OpposingSide, enPassantSquare, castlingRights, halfMoveClock);
+            int fullMoveNumber = position.FullMoveNumber;
+            if (position.SideToMove == Side.Black)
+                fullMoveNumber++;
+
+            return new Position(newBoard, position.OpposingSide, enPassantSquare, castlingRights, halfMoveClock) { FullMoveNumber = fullMoveNumber };
+        }
+
+        private static CastlingRights UpdateCastlingRightsForBothSides(Board newBoard, CastlingRights castlingRights)
+        {
+            castlingRights = UpdateCastlingRightsForSide(castlingRights, newBoard, Side.White);
+            castlingRights = UpdateCastlingRightsForSide(castlingRights, newBoard, Side.Black);
+
+            return castlingRights;
+        }
+
+        private static CastlingRights UpdateCastlingRightsForSide(CastlingRights castlingRights, Board newBoard, Side side)
+        {
+            if ((Castling.KingSideRookFrom(side) & newBoard[side, Piece.Rook]) == 0)
+            {
+                castlingRights = castlingRights.RemoveKingSide(side);
+            }
+
+            if ((Castling.QueenSideRookFrom(side) & newBoard[side, Piece.Rook]) == 0)
+            {
+                castlingRights = castlingRights.RemoveQueenSide(side);
+            }
+
+            return castlingRights;
         }
 
         public static bool KingIsInCheck(Side side, Board board)
@@ -70,7 +94,13 @@ namespace ChessDF.Moves
             Board newBoard = board.Copy();
             newBoard[fromSide, fromPiece] ^= fromTo;
 
-            if (move.Flags.HasFlag(MoveFlags.EnPassantCapture))
+            if (move.IsPromotion)
+            {
+                newBoard[fromSide, fromPiece] ^= to;
+                newBoard[fromSide, move.PromotionPiece!.Value] ^= to;
+            }
+
+            if (move.Flags == MoveFlags.EnPassantCapture)
             {
                 Bitboard capturedPawn = fromSide switch
                 {
