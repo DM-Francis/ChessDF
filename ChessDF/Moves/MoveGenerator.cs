@@ -245,7 +245,7 @@ namespace ChessDF.Moves
 
         private static bool IsFinalRank(Square square) => (int)square < 8 || (int)square >= 56;
 
-        private static bool MoveIsIllegal(Move move, Board board, Side side)
+        public static bool MoveIsIllegal(Move move, Board board, Side side)
         {
             var newBoard = Mover.ApplyMoveToBoard(board, move, out _);
             return Mover.KingIsInCheck(side, newBoard);

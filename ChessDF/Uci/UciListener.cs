@@ -1,5 +1,7 @@
 ﻿using ChessDF.Core;
+using ChessDF.Evaluation;
 using ChessDF.Moves;
+using ChessDF.Searching;
 using ChessDF.Uci.Commands;
 using System;
 using System.Collections.Generic;
@@ -12,7 +14,7 @@ namespace ChessDF.Uci
 {
     public class UciListener
     {
-        private static Random _rng = new Random();
+        private static readonly Random _rng = new Random();
         private Position? _currentPosition;
 
         public void Run()
@@ -57,7 +59,7 @@ namespace ChessDF.Uci
 
                     if (!goCommand.Infinite)
                     {
-                        Move move = GetRandomMove();
+                        Move move = SearchForBestMove();
                         Console.WriteLine(new BestMoveCommand(move));
                     }
                 }
@@ -78,6 +80,15 @@ namespace ChessDF.Uci
             int randomIndex = _rng.Next() % availableMoves.Count;
 
             return availableMoves[randomIndex];
+        }
+
+        private Move SearchForBestMove()
+        {
+            if (_currentPosition is null)
+                throw new InvalidOperationException("Position not yet specified");
+
+            var search = new Search(new BasicScoreEvaluation());
+            return search.RootNegaMax(_currentPosition, 3);
         }
     }
 }

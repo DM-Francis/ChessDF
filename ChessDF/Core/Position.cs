@@ -33,5 +33,14 @@ namespace ChessDF.Core
 
         public string ToFENString()
             => new FEN(Board.ToPiecePlacementString(), SideToMove, CastlingRights, EnPassantSquare, HalfmoveClock, FullMoveNumber).ToString();
+
+
+        public bool IsInCheckmate()
+        {
+            bool isInCheck = Mover.KingIsInCheck(SideToMove, Board);
+            bool noLegalMoves = MoveGenerator.GetAllMoves(this).Count == 0;
+
+            return isInCheck && noLegalMoves;
+        }
     }
 }
