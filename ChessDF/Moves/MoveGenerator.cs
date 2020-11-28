@@ -8,7 +8,7 @@ namespace ChessDF.Moves
 {
     public class MoveGenerator
     {
-        public static List<Move> GetAllMoves(Position position)
+        public static List<Move> GetAllMoves(Position position, bool onlyLegal = true)
         {
             var allMoves = new List<Move>();
 
@@ -20,8 +20,13 @@ namespace ChessDF.Moves
             AddKingMoves(position, allMoves);
             AddCastlingMoves(position, allMoves);
 
-            var legalMoves = allMoves.Where(m => !MoveIsIllegal(m, position.Board, position.SideToMove)).ToList();
-            return legalMoves;
+            if (onlyLegal)
+            {
+                var legalMoves = allMoves.Where(m => !MoveIsIllegal(m, position.Board, position.SideToMove)).ToList();
+                return legalMoves;
+            }
+
+            return allMoves;
         }
 
         internal static void AddAllPawnMoves(Position position, List<Move> allMoves)
@@ -58,21 +63,29 @@ namespace ChessDF.Moves
                 for (int t = 0; t < targetSquares.Length; t++)
                 {
                     Square to = (Square)targetSquares[t];
+
+                    if (to == position.EnPassantSquare)
+                    {
+                        allMoves.Add(new Move(from, to, MoveFlags.EnPassantCapture, Piece.Pawn));
+                        continue;
+                    }
+
+                    (_, Piece targetPiece) = board.GetPieceOnSquare(to);
                     if (IsFinalRank(to))
                     {
                         var promotions = new[]
                         {
-                            new Move(from, to, MoveFlags.Capture | MoveFlags.KnightPromotion),
-                            new Move(from, to, MoveFlags.Capture | MoveFlags.BishopPromotion),
-                            new Move(from, to, MoveFlags.Capture | MoveFlags.RookPromotion),
-                            new Move(from, to, MoveFlags.Capture | MoveFlags.QueenPromotion),
+                            new Move(from, to, MoveFlags.Capture | MoveFlags.KnightPromotion, targetPiece),
+                            new Move(from, to, MoveFlags.Capture | MoveFlags.BishopPromotion, targetPiece),
+                            new Move(from, to, MoveFlags.Capture | MoveFlags.RookPromotion, targetPiece),
+                            new Move(from, to, MoveFlags.Capture | MoveFlags.QueenPromotion, targetPiece),
                         };
                         allMoves.AddRange(promotions);
                     }
                     else
                     {
                         var flags = to == position.EnPassantSquare ? MoveFlags.EnPassantCapture : MoveFlags.Capture;
-                        allMoves.Add(new Move(from, to, flags));
+                        allMoves.Add(new Move(from, to, flags, targetPiece));
                     }
                 }
             }
@@ -188,6 +201,9 @@ namespace ChessDF.Moves
             Side side = position.SideToMove;
             Board board = position.Board;
 
+            if (board[side, Piece.King] == 0)
+                return;
+
             if (Castling.CanCastleKingside(position.CastlingRights, side))
             {
                 var kingsideBetween = Castling.KingSideBetween(side);
@@ -238,8 +254,16 @@ namespace ChessDF.Moves
             {
                 Square to = (Square)targetSquares[t];
                 bool isCapture = (Bitboard.FromSquare(to) & board.OpposingPieces(sideToMove)) != 0;
-                var flags = isCapture ? MoveFlags.Capture : MoveFlags.QuietMove;
-                allMoves.Add(new Move(from, to, flags));
+
+                if (isCapture)
+                {
+                    (_, Piece targetPiece) = board.GetPieceOnSquare(to);
+                    allMoves.Add(new Move(from, to, MoveFlags.Capture, targetPiece));
+                }
+                else
+                {
+                    allMoves.Add(new Move(from, to, MoveFlags.QuietMove));
+                }
             }
         }
 
@@ -247,8 +271,10 @@ namespace ChessDF.Moves
 
         public static bool MoveIsIllegal(Move move, Board board, Side side)
         {
-            var newBoard = Mover.ApplyMoveToBoard(board, move, out _);
-            return Mover.KingIsInCheck(side, newBoard);
+            Mover.ApplyMoveToBoard(board, move, out _);
+            bool illegal = Mover.KingIsInCheck(side, board);
+            Mover.UndoMoveOnBoard(board, move);
+            return illegal;
         }
     }
 }

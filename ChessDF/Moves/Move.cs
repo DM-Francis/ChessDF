@@ -15,11 +15,21 @@ namespace ChessDF.Moves
         public Move(Square from, Square to, MoveFlags flags)
         {
             _moveData = ((uint)flags & 0xf) << 12 | ((uint)from & 0x3f) << 6 | ((uint)to & 0x3f);
+            if (IsCapture)
+                throw new ArgumentException("Use the Move constructor with the captured piece parameter for captures");
+        }
+
+        public Move(Square from, Square to, MoveFlags flags, Piece capturedPiece)
+        {
+            _moveData = ((uint)capturedPiece & 0x7) << 16 | ((uint)flags & 0xf) << 12 | ((uint)from & 0x3f) << 6 | ((uint)to & 0x3f);
+            if (!IsCapture)
+                throw new ArgumentException("Do not specifiy a captured piece for non-capturing moves");
         }
 
         public Square From => (Square)((_moveData >> 6) & 0x3f);
         public Square To => (Square)(_moveData & 0x3f);
         public MoveFlags Flags => (MoveFlags)((_moveData >> 12) & 0xf);
+        public Piece? CapturedPiece => IsCapture ? (Piece)((_moveData >> 16) & 0x7) : null;
 
         public bool IsCapture => (Flags & MoveFlags.Capture) != 0;
         public bool IsPromotion => (Flags & MoveFlags.KnightPromotion) != 0;
@@ -64,7 +74,7 @@ namespace ChessDF.Moves
 
             // Check for en passant
             if (to == position.EnPassantSquare && fromPiece == Piece.Pawn)
-                return new Move(from, to, MoveFlags.EnPassantCapture);
+                return new Move(from, to, MoveFlags.EnPassantCapture, Piece.Pawn);
 
             // Check for double pawn push
             if (fromPiece == Piece.Pawn && Math.Abs(from - to) == 16)
@@ -84,8 +94,14 @@ namespace ChessDF.Moves
             }
 
             // Check for captures
-            if ((Bitboard.FromSquare(to) & board.OpposingPieces(fromSide)) != 0)
+            Bitboard captureSquare = Bitboard.FromSquare(to) & board.OpposingPieces(fromSide);
+            if (captureSquare != 0)
+            {
                 flags |= MoveFlags.Capture;
+                var sq = (Square)captureSquare.Serialize()[0];
+                (_, Piece piece) = board.GetPieceOnSquare(sq);
+                return new Move(from, to, flags, piece);
+            }
 
             return new Move(from, to, flags);
         }

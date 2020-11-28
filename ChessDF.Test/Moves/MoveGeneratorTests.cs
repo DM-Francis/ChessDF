@@ -179,14 +179,7 @@ namespace ChessDF.Test.Moves
         public void GeneratesCorrectKnightMovesComplexPosition()
         {
             // Assemble
-            var board = new Board
-            {
-                WhitePawns = 0x00_00_00_00_00_00_ff_00,
-                WhiteKnights = 0x00_00_00_02_00_10_00_00,
-                BlackPawns = 0x00_17_a8_40_00_00_00_00,
-                BlackBishops = 0x00_00_01_20_00_00_00_00
-            };
-            var position = new Position(board, Side.White, null, CastlingRights.None, 0);
+            var position = Position.FromFENString("8/ppp1p3/b2p1p1p/1N3bp1/8/4N3/PPPPPPPP/8 w - - 1 8 ");
             var moves = new List<Move>();
 
             // Act
@@ -200,14 +193,14 @@ namespace ChessDF.Test.Moves
                 new Move(Square.e3, Square.c4, MoveFlags.QuietMove),
                 new Move(Square.e3, Square.d5, MoveFlags.QuietMove),
                 new Move(Square.e3, Square.g4, MoveFlags.QuietMove),
-                new Move(Square.e3, Square.f5, MoveFlags.Capture),
+                new Move(Square.e3, Square.f5, MoveFlags.Capture, Piece.Bishop),
 
                 new Move(Square.b5, Square.a3, MoveFlags.QuietMove),
                 new Move(Square.b5, Square.c3, MoveFlags.QuietMove),
                 new Move(Square.b5, Square.d4, MoveFlags.QuietMove),
-                new Move(Square.b5, Square.d6, MoveFlags.Capture),
-                new Move(Square.b5, Square.a7, MoveFlags.Capture),
-                new Move(Square.b5, Square.c7, MoveFlags.Capture),
+                new Move(Square.b5, Square.d6, MoveFlags.Capture, Piece.Pawn),
+                new Move(Square.b5, Square.a7, MoveFlags.Capture, Piece.Pawn),
+                new Move(Square.b5, Square.c7, MoveFlags.Capture, Piece.Pawn),
             };
 
             moves.Should().BeEquivalentTo(expectedMoves);
@@ -380,15 +373,7 @@ namespace ChessDF.Test.Moves
         public void GeneratesCorrectKingMovesWhite()
         {
             // Assemble
-            var board = new Board
-            {
-                WhitePawns = 0x00_00_00_00_00_00_c0_20,
-                WhiteKing = 0x00_00_00_00_00_00_00_40,
-                BlackKnights = 0x00_10_00_00_00_00_00_00,
-                BlackKing = 0x10_00_00_00_00_00_00_00
-            };
-
-            var position = new Position(board, Side.White, null, CastlingRights.None, 0);
+            var position = Position.FromFENString("4k3/3Pn3/8/8/8/8/6PP/5PK1 w - - 1 8 ");
             var moves = new List<Move>();
 
             // Act
@@ -408,15 +393,7 @@ namespace ChessDF.Test.Moves
         public void GeneratesCorrectKingMovesBlack()
         {
             // Assemble
-            var board = new Board
-            {
-                WhitePawns = 0x00_08_00_00_00_00_c0_20,
-                WhiteKing = 0x00_00_00_00_00_00_00_40,
-                BlackKnights = 0x00_10_00_00_00_00_00_00,
-                BlackKing = 0x10_00_00_00_00_00_00_00
-            };
-
-            var position = new Position(board, Side.Black, null, CastlingRights.None, 0);
+            var position = Position.FromFENString("4k3/3Pn3/8/8/8/8/6PP/5PK1 b - - 1 8 ");
             var moves = new List<Move>();
 
             // Act
@@ -425,7 +402,7 @@ namespace ChessDF.Test.Moves
             // Assert
             var expectedMoves = new List<Move>
             {
-                new Move(Square.e8, Square.d7, MoveFlags.Capture),
+                new Move(Square.e8, Square.d7, MoveFlags.Capture, Piece.Pawn),
                 new Move(Square.e8, Square.f7, MoveFlags.QuietMove),
                 new Move(Square.e8, Square.d8, MoveFlags.QuietMove),
                 new Move(Square.e8, Square.f8, MoveFlags.QuietMove)
@@ -635,10 +612,10 @@ namespace ChessDF.Test.Moves
             // Assert
             var promotionMoves = new[]
             {
-                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.KnightPromotion),
-                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.BishopPromotion),
-                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.QueenPromotion),
-                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.RookPromotion),
+                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.KnightPromotion, Piece.Bishop),
+                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.BishopPromotion, Piece.Bishop),
+                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.QueenPromotion, Piece.Bishop),
+                new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.RookPromotion, Piece.Bishop),
             };
 
             moves.Should().Contain(promotionMoves);

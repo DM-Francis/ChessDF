@@ -88,7 +88,7 @@ namespace ChessDF.Test.Moves
         {
             // Assemble
             var position = Position.FromFENString("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
-            var move = new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.KnightPromotion);
+            var move = new Move(Square.d7, Square.c8, MoveFlags.Capture | MoveFlags.KnightPromotion, Piece.Bishop);
 
             // Act
             var newPosition = Mover.MakeMove(position, move);
@@ -137,7 +137,7 @@ namespace ChessDF.Test.Moves
         {
             // Assemble
             var position = Position.FromFENString("rnbqkbnr/ppppppPp/8/8/8/8/PPPPPP1P/RNBQKBNR w KQkq - 0 1 ");
-            var move = new Move(Square.g7, Square.h8, MoveFlags.Capture | MoveFlags.BishopPromotion);
+            var move = new Move(Square.g7, Square.h8, MoveFlags.Capture | MoveFlags.BishopPromotion, Piece.Rook);
 
             // Act
             var newPosition = Mover.MakeMove(position, move);
@@ -146,6 +146,92 @@ namespace ChessDF.Test.Moves
             var expectedPosition = Position.FromFENString("rnbqkbnB/pppppp1p/8/8/8/8/PPPPPP1P/RNBQKBNR b KQq - 0 1 ");
 
             Assert.Equal(expectedPosition, newPosition);
+        }
+
+        [Fact]
+        public void CanUnmakeCapturesOnBoard()
+        {
+            // Assemble
+            var board = Board.FromPiecePlacementString("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R");
+            var move = new Move(Square.g4, Square.f2, MoveFlags.Capture, Piece.Pawn);
+
+            // Act
+            Mover.UndoMoveOnBoard(board, move);
+
+            // Assert
+            string expectedBoard = "rnbq1k1r/pp1Pbppp/2p5/8/2B3n1/8/PPP1NPPP/RNBQK2R";
+            Assert.Equal(expectedBoard, board.ToPiecePlacementString());
+        }
+
+        [Fact]
+        public void CanUnmakeEnpassantOnBoard()
+        {
+            // Assemble
+            var board = Board.FromPiecePlacementString("rnbq1k1r/pp1pb1pp/2p2P2/8/2B3n1/8/PPP1NPPP/RNBQK2R");
+            var move = new Move(Square.e5, Square.f6, MoveFlags.EnPassantCapture, Piece.Pawn);
+
+            // Act
+            Mover.UndoMoveOnBoard(board, move);
+
+            // Assert
+            string expectedBoard = "rnbq1k1r/pp1pb1pp/2p5/4Pp2/2B3n1/8/PPP1NPPP/RNBQK2R";
+            Assert.Equal(expectedBoard, board.ToPiecePlacementString());
+        }
+
+        [Fact]
+        public void CanUnmakePromotionOnBoard()
+        {
+            // Assemble
+            var board = Board.FromPiecePlacementString("rnbq1kNr/pp1pb2p/2p5/8/2B3n1/8/PPP1NPPP/RNBQK2R");
+            var move = new Move(Square.g7, Square.g8, MoveFlags.KnightPromotion);
+
+            // Act
+            Mover.UndoMoveOnBoard(board, move);
+
+            // Assert
+            string expectedBoard = "rnbq1k1r/pp1pb1Pp/2p5/8/2B3n1/8/PPP1NPPP/RNBQK2R";
+            Assert.Equal(expectedBoard, board.ToPiecePlacementString());
+        }
+
+        [Fact]
+        public void CanUnmakePromotionCaptureOnBoard()
+        {
+            // Assemble
+            var board = Board.FromPiecePlacementString("rnbq1k1Q/pp1pb2p/2p5/8/2B3n1/8/PPP1NPPP/RNBQK2R");
+            var move = new Move(Square.g7, Square.h8, MoveFlags.QueenPromotion | MoveFlags.Capture, Piece.Rook);
+
+            // Act
+            Mover.UndoMoveOnBoard(board, move);
+
+            // Assert
+            string expectedBoard = "rnbq1k1r/pp1pb1Pp/2p5/8/2B3n1/8/PPP1NPPP/RNBQK2R";
+            Assert.Equal(expectedBoard, board.ToPiecePlacementString());
+        }
+
+        public static IEnumerable<object[]> CastlingTestData()
+        {
+            string castlingBasePosition = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R";
+
+            yield return new object[] { castlingBasePosition, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1", new Move(Square.e1, Square.g1, MoveFlags.KingCastle) };
+            yield return new object[] { castlingBasePosition, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR3R", new Move(Square.e1, Square.c1, MoveFlags.QueenCastle) };
+            yield return new object[] { castlingBasePosition, "r4rk1/pppppppp/8/8/8/8/PPPPPPPP/R3K2R", new Move(Square.e8, Square.g8, MoveFlags.KingCastle) };
+            yield return new object[] { castlingBasePosition, "2kr3r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R", new Move(Square.e8, Square.c8, MoveFlags.QueenCastle) };
+        }
+
+
+        [Theory]
+        [MemberData(nameof(CastlingTestData))]
+        public void CanUnmakeCastlingOnBoard(string beforeBoard, string afterBoard, Move move)
+        {
+            // Assemble
+            Board board = Board.FromPiecePlacementString(afterBoard);
+
+            // Act
+            Mover.UndoMoveOnBoard(board, move);
+
+            // Assert
+            string expectedBoard = beforeBoard;
+            Assert.Equal(expectedBoard, board.ToPiecePlacementString());
         }
     }
 }

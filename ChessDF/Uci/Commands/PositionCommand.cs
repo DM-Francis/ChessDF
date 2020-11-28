@@ -12,25 +12,32 @@ namespace ChessDF.Uci.Commands
     class PositionCommand : Command
     {
         public override string CommandName => "position";
-
-        public string PositionString { get; }
-        public ReadOnlyCollection<string> MoveStrings { get; } = new List<string>().AsReadOnly();
-
         public Position PositionObject { get; }
 
-        public PositionCommand(string positionString, IEnumerable<string>? moves)
+        public PositionCommand(IEnumerable<string> args)
         {
-            PositionString = positionString;
+            var argsList = args.ToList();
+            int movesIndex = argsList.FindIndex(a => a == "moves");
 
             Position position;
-            if (positionString == "startpos")
+            if (argsList[0] == "startpos")
                 position = Core.Position.StartPosition;
-            else
-                position = Core.Position.FromFENString(positionString);
-
-            if (moves is not null)
+            else if (argsList[0] == "fen")
             {
-                MoveStrings = new List<string>(moves).AsReadOnly();
+                int endIndex = movesIndex == -1 ? argsList.Count : movesIndex;
+                string[] fenArgs = argsList.ToArray()[1..endIndex];
+                string fenString = string.Join(' ', fenArgs);
+                position = Core.Position.FromFENString(fenString);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid position command, must specify either startpos or a fen string");
+            }
+
+            if (movesIndex != -1)
+            {
+                int firstMove = movesIndex + 1;
+                string[] moves = argsList.ToArray()[firstMove..];
                 foreach (string moveString in moves)
                 {
                     Move move = Move.FromStringAndPosition(moveString, position);
@@ -39,19 +46,6 @@ namespace ChessDF.Uci.Commands
             }
 
             PositionObject = position;
-        }
-
-        public override string ToString()
-        {
-            if (MoveStrings.Count == 0)
-            {
-                return $"{CommandName} {PositionString}";
-            }
-            else
-            {
-                string allMoves = MoveStrings.Aggregate((all, move) => all += $" {move}");
-                return $"{CommandName} {PositionString} moves {allMoves}";
-            }
         }
     }
 }

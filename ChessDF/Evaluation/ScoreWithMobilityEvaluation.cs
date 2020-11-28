@@ -1,4 +1,5 @@
 ﻿using ChessDF.Core;
+using ChessDF.Moves;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ChessDF.Evaluation
 {
-    public class BasicScoreEvaluation : IEvaluator
+    class ScoreWithMobilityEvaluation : IEvaluator
     {
         public double Evaluate(Position position)
         {
@@ -17,6 +18,11 @@ namespace ChessDF.Evaluation
                 + (position.Board.WhiteBishops.PopCount() - position.Board.BlackBishops.PopCount()) * 3
                 + (position.Board.WhiteKnights.PopCount() - position.Board.BlackKnights.PopCount()) * 3
                 + (position.Board.WhitePawns.PopCount() - position.Board.BlackPawns.PopCount()) * 1;
+
+            int totalMovesAvailable = MoveGenerator.GetAllMoves(position, onlyLegal: true).Count;
+            int enemyMovesAvailable = MoveGenerator.GetAllMoves(position with { SideToMove = position.OpposingSide }, onlyLegal: true).Count;
+
+            score += 0.1 * (totalMovesAvailable - enemyMovesAvailable);
 
             if (position.SideToMove == Side.White)
                 return score;

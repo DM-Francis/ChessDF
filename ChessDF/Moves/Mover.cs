@@ -12,12 +12,19 @@ namespace ChessDF.Moves
     {
         public static Position MakeMove(this Position position, Move move)
         {
-            Board newBoard = ApplyMoveToBoard(position.Board, move, out Piece fromPiece);
+            var newPosition = MakeMoveNoLegalCheck(position, move);
+            bool isLegal = !KingIsInCheck(position.SideToMove, newPosition.Board);
 
-            if (KingIsInCheck(position.SideToMove, newBoard))
-            {
+            if (!isLegal)
                 throw new IllegalMoveException("King is in check");
-            }
+
+            return newPosition;
+        }
+
+        public static Position MakeMoveNoLegalCheck(this Position position, Move move)
+        {
+            Board board = position.Board;
+            ApplyMoveToBoard(board, move, out Piece fromPiece);
 
             CastlingRights castlingRights = position.CastlingRights;
             int halfMoveClock = position.HalfmoveClock;
@@ -38,7 +45,7 @@ namespace ChessDF.Moves
                 castlingRights = castlingRights.RemoveBoth(position.SideToMove);
             }
 
-            castlingRights = UpdateCastlingRightsForBothSides(newBoard, castlingRights);
+            castlingRights = UpdateCastlingRightsForBothSides(board, castlingRights);
 
             if (fromPiece == Piece.Pawn || move.IsCapture)
                 halfMoveClock = 0;
@@ -49,7 +56,7 @@ namespace ChessDF.Moves
             if (position.SideToMove == Side.Black)
                 fullMoveNumber++;
 
-            return new Position(newBoard, position.OpposingSide, enPassantSquare, castlingRights, halfMoveClock) { FullMoveNumber = fullMoveNumber };
+            return new Position(board, position.OpposingSide, enPassantSquare, castlingRights, halfMoveClock) { FullMoveNumber = fullMoveNumber };
         }
 
         private static CastlingRights UpdateCastlingRightsForBothSides(Board newBoard, CastlingRights castlingRights)
@@ -83,7 +90,7 @@ namespace ChessDF.Moves
             return (king & enemyAttacks) != 0;
         }
 
-        public static Board ApplyMoveToBoard(Board board, Move move, out Piece fromPiece)
+        public static void ApplyMoveToBoard(Board board, Move move, out Piece fromPiece)
         {
             (Side fromSide, Piece fromPiece_) = board.GetPieceOnSquare(move.From);
             fromPiece = fromPiece_;
@@ -91,13 +98,55 @@ namespace ChessDF.Moves
             Bitboard to = Bitboard.FromSquare(move.To);
             Bitboard fromTo = from | to;
 
-            Board newBoard = board.Copy();
-            newBoard[fromSide, fromPiece] ^= fromTo;
+            if (move.Flags == MoveFlags.EnPassantCapture)
+            {
+                Bitboard capturedPawn = fromSide switch
+                {
+                    Side.White => to.SoutOne(),
+                    Side.Black => to.NortOne(),
+                    _ => throw new IndexOutOfRangeException(nameof(fromSide))
+                };
+
+                board[fromSide.OpposingSide(), Piece.Pawn] ^= capturedPawn;
+            }
+            else if (move.IsCapture)
+            {
+                (Side toSide, Piece toPiece) = board.GetPieceOnSquare(move.To);
+                board[toSide, toPiece] ^= to;
+            }
+            else if (move.Flags == MoveFlags.KingCastle)
+            {
+                board[fromSide, Piece.Rook] ^= Castling.KingSideRookToFrom(fromSide);
+            }
+            else if (move.Flags == MoveFlags.QueenCastle)
+            {
+                board[fromSide, Piece.Rook] ^= Castling.QueenSideRookToFrom(fromSide);
+            }
+
+            board[fromSide, fromPiece] ^= fromTo;
 
             if (move.IsPromotion)
             {
-                newBoard[fromSide, fromPiece] ^= to;
-                newBoard[fromSide, move.PromotionPiece!.Value] ^= to;
+                board[fromSide, fromPiece] ^= to;
+                board[fromSide, move.PromotionPiece!.Value] ^= to;
+            }
+        }
+
+        public static void UndoMoveOnBoard(Board board, Move move)
+        {
+            (Side fromSide, Piece fromPiece) = board.GetPieceOnSquare(move.To);
+            Bitboard from = Bitboard.FromSquare(move.From);
+            Bitboard to = Bitboard.FromSquare(move.To);
+            Bitboard fromTo = from | to;
+
+            if (move.IsPromotion)
+            {
+                board[fromSide, fromPiece] ^= to;
+                board[fromSide, Piece.Pawn] ^= from;
+            }
+            else
+            {
+                board[fromSide, fromPiece] ^= fromTo;
             }
 
             if (move.Flags == MoveFlags.EnPassantCapture)
@@ -109,23 +158,21 @@ namespace ChessDF.Moves
                     _ => throw new IndexOutOfRangeException(nameof(fromSide))
                 };
 
-                newBoard[fromSide.OpposingSide(), Piece.Pawn] ^= capturedPawn;
+                board[fromSide.OpposingSide(), Piece.Pawn] ^= capturedPawn;
             }
             else if (move.IsCapture)
             {
-                (Side toSide, Piece toPiece) = board.GetPieceOnSquare(move.To);
-                newBoard[toSide, toPiece] ^= to;
+                (Side toSide, Piece toPiece) = (fromSide.OpposingSide(), move.CapturedPiece!.Value);
+                board[toSide, toPiece] ^= to;
             }
             else if (move.Flags == MoveFlags.KingCastle)
             {
-                newBoard[fromSide, Piece.Rook] ^= Castling.KingSideRookToFrom(fromSide);
+                board[fromSide, Piece.Rook] ^= Castling.KingSideRookToFrom(fromSide);
             }
             else if (move.Flags == MoveFlags.QueenCastle)
             {
-                newBoard[fromSide, Piece.Rook] ^= Castling.QueenSideRookToFrom(fromSide);
+                board[fromSide, Piece.Rook] ^= Castling.QueenSideRookToFrom(fromSide);
             }
-
-            return newBoard;
         }
     }
 }

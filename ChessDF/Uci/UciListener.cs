@@ -12,10 +12,12 @@ using System.Threading.Tasks;
 
 namespace ChessDF.Uci
 {
-    public class UciListener
+    public class UciListener : IOutput
     {
         private static readonly Random _rng = new Random();
         private Position? _currentPosition;
+
+        private Search? _currentSearch;
 
         public void Run()
         {
@@ -44,13 +46,7 @@ namespace ChessDF.Uci
                 else if (commandName == Command.UciNewGame) { }
                 else if (commandName == Command.Position)
                 {
-                    PositionCommand positionCommand;
-
-                    if (commandArgs.Length == 1)
-                        positionCommand = new PositionCommand(commandArgs[0], null);
-                    else
-                        positionCommand = new PositionCommand(commandArgs[0], commandArgs[2..]);
-
+                    var positionCommand = new PositionCommand(commandArgs);
                     _currentPosition = positionCommand.PositionObject;
                 }
                 else if (commandName == Command.Go)
@@ -59,7 +55,7 @@ namespace ChessDF.Uci
 
                     if (!goCommand.Infinite)
                     {
-                        Move move = SearchForBestMove();
+                        Move move = SearchForBestMove(goCommand.Depth);
                         Console.WriteLine(new BestMoveCommand(move));
                     }
                 }
@@ -69,6 +65,11 @@ namespace ChessDF.Uci
                     Console.WriteLine(new BestMoveCommand(move));
                 }
             }
+        }
+
+        public void WriteDebug(string text)
+        {
+            Console.WriteLine(new InfoCommand(text));
         }
 
         private Move GetRandomMove()
@@ -82,13 +83,25 @@ namespace ChessDF.Uci
             return availableMoves[randomIndex];
         }
 
-        private Move SearchForBestMove()
+        private Move SearchForBestMove(int? depth)
         {
             if (_currentPosition is null)
                 throw new InvalidOperationException("Position not yet specified");
 
-            var search = new Search(new BasicScoreEvaluation());
-            return search.RootNegaMax(_currentPosition, 3);
+            var search = new Search(new BasicScoreEvaluation(), this);
+            IList<(Move move, double score)> bestMoves = search.SearchAlphaBeta(_currentPosition, depth ?? 6);
+            int randomIndex = _rng.Next() % bestMoves.Count;
+
+            return bestMoves[randomIndex].move;
+        }
+
+        private void StartSearch(int depth = 6)
+        {
+            if (_currentPosition is null)
+                throw new InvalidOperationException("Position not yet specified");
+
+            _currentSearch = new Search(new BasicScoreEvaluation(), this);
+            Task searchTask = Task.Run(() => _currentSearch.SearchAlphaBeta(_currentPosition, depth));
         }
     }
 }
