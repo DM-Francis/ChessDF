@@ -16,6 +16,8 @@ namespace ChessDF.Uci
     {
         private static readonly Random _rng = new Random();
         private Position? _currentPosition;
+        private Dictionary<ulong, Node> _nodeCache = new();
+        private ZobristGenerator _generator = new();
 
         private Search? _currentSearch;
 
@@ -43,7 +45,10 @@ namespace ChessDF.Uci
                 {
                     Console.WriteLine("readyok");
                 }
-                else if (commandName == Command.UciNewGame) { }
+                else if (commandName == Command.UciNewGame)
+                {
+
+                }
                 else if (commandName == Command.Position)
                 {
                     var positionCommand = new PositionCommand(commandArgs);
@@ -88,8 +93,8 @@ namespace ChessDF.Uci
             if (_currentPosition is null)
                 throw new InvalidOperationException("Position not yet specified");
 
-            var search = new Search(new BasicScoreEvaluation(), this);
-            IList<(Move move, double score)> bestMoves = search.SearchAlphaBeta(_currentPosition, depth ?? 6);
+            var search = new Search(new BasicScoreEvaluation(), _nodeCache, _generator, this);
+            IList<(Move move, double score)> bestMoves = search.SearchAlphaBeta(_currentPosition, depth ?? 5);
             int randomIndex = _rng.Next() % bestMoves.Count;
 
             return bestMoves[randomIndex].move;

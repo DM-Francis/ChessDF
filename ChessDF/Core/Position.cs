@@ -42,5 +42,16 @@ namespace ChessDF.Core
 
             return isInCheck && noLegalMoves;
         }
+
+        public bool IsInStatemate()
+        {
+            if (Board[SideToMove, Piece.King] == 0)
+                return false;
+
+            bool isInCheck = Mover.KingIsInCheck(SideToMove, Board);
+            bool noLegalMoves = MoveGenerator.GetAllMoves(this).Count == 0;
+
+            return !isInCheck && noLegalMoves;
+        }
     }
 }

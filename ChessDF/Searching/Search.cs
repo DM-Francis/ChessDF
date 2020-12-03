@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChessDF.Searching
 {
@@ -22,12 +20,25 @@ namespace ChessDF.Searching
         private readonly IEvaluator _evaluator;
         private readonly IOutput? _output;
         private readonly List<(Move move, double score)> _bestMoves = new List<(Move move, double score)>();
+        private readonly ZobristGenerator _hashGenerator = new();
+        private readonly Dictionary<ulong, Node> _nodeCache;
 
         public ReadOnlyCollection<(Move move, double score)> BestMoves { get; }
 
         public Search(IEvaluator evaluator, IOutput? output = null)
         {
             _evaluator = evaluator;
+            _nodeCache = new();
+            _hashGenerator = new();
+            _output = output;
+            BestMoves = _bestMoves.AsReadOnly();
+        }
+
+        public Search(IEvaluator evaluator, Dictionary<ulong, Node> nodeCache, ZobristGenerator generator, IOutput? output = null)
+        {
+            _evaluator = evaluator;
+            _nodeCache = nodeCache;
+            _hashGenerator = generator;
             _output = output;
             BestMoves = _bestMoves.AsReadOnly();
         }
@@ -90,28 +101,29 @@ namespace ChessDF.Searching
             if (depth <= 0)
                 throw new ArgumentOutOfRangeException(nameof(depth), $"{depth} must be one or more.");
 
-            double max = -5000;
+            double alpha = -6000;
+            double beta = 6000;
 
             var allMoves = MoveGenerator.GetAllMoves(position);
             allMoves.Reverse();
             foreach (Move move in allMoves)
             {
                 Position newPosition = position.MakeMove(move);
-                double score = -AlphaBeta(newPosition, double.MinValue, -max + 0.5, depth - 1);
+                double score = -AlphaBeta(newPosition, -beta, -alpha, depth - 1);
                 Mover.UndoMoveOnBoard(newPosition.Board, move);
 
                 _output?.WriteDebug($"Evaluated move {move}. Score = {score}");
 
-                if (score > max)
+                if (score > alpha)
                 {
-                    max = score;
+                    alpha = score;
                     _bestMoves.Clear();
                     _bestMoves.Add((move, score));
                 }
-                else if (score == max)
-                {
-                    _bestMoves.Add((move, score));
-                }
+                //else if (score == alpha)
+                //{
+                //    _bestMoves.Add((move, score));
+                //}
             }
 
             return BestMoves;
@@ -119,13 +131,26 @@ namespace ChessDF.Searching
 
         internal double AlphaBeta(Position position, double alpha, double beta, int depth)
         {
+            ulong hash = _hashGenerator.GetHash(position);
+            if (_nodeCache.TryGetValue(hash, out Node? node) && node.Depth >= depth)
+            {
+                if (node.NodeType == NodeType.Exact)
+                    return node.Score;
+                else if (node.NodeType == NodeType.UpperBound)
+                    beta = node.Score;
+                else if (node.NodeType == NodeType.LowerBound)
+                    alpha = node.Score;
+            }
+
             if (depth == 0)
             {
-                return _evaluator.Evaluate(position);
+                double score = Quiese(position, alpha, beta, 3);
+                _nodeCache[hash] = new Node(depth, score, NodeType.Exact);
+                return score;
             }
 
             var allMoves = MoveGenerator.GetAllMoves(position, onlyLegal: false);
-
+            NodeType nodeType = NodeType.UpperBound;
             foreach (Move move in allMoves)
             {
                 Position newPosition = position.MakeMoveNoLegalCheck(move);
@@ -133,11 +158,54 @@ namespace ChessDF.Searching
                 Mover.UndoMoveOnBoard(newPosition.Board, move);
 
                 if (score >= beta)
+                {
+                    _nodeCache[hash] = new Node(depth, beta, NodeType.LowerBound);
                     return beta;
+                }
+
                 if (score > alpha)
                 {
-                    alpha = score;                                        
+                    nodeType = NodeType.Exact;
+                    alpha = score;
                 }
+            }
+
+            if (alpha <= -4000 && position.IsInStatemate())
+                alpha = 0;
+
+            _nodeCache[hash] = new Node(depth, alpha, nodeType);
+
+            return alpha;
+        }
+
+
+        internal double Quiese(Position position, double alpha, double beta, int depth)
+        {
+            double standPat = _evaluator.Evaluate(position);
+
+            if (depth == 0)
+                return standPat;
+
+            if (standPat >= beta)
+                return beta;
+            if (alpha < standPat)
+                alpha = standPat;
+
+            var allMoves = MoveGenerator.GetAllMoves(position, onlyLegal: false);
+            foreach(Move move in allMoves)
+            {
+                if (!move.IsCapture)
+                    continue;
+
+                Position newPosition = position.MakeMoveNoLegalCheck(move);
+                double score = -Quiese(newPosition, -beta, -alpha, depth - 1);
+                Mover.UndoMoveOnBoard(newPosition.Board, move);
+
+                if (score >= beta)
+                    return beta;
+
+                if (score > alpha)
+                    alpha = score;
             }
 
             return alpha;

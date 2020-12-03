@@ -2,6 +2,7 @@
 using ChessDF.Evaluation;
 using ChessDF.Moves;
 using ChessDF.Searching;
+using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,6 +72,26 @@ namespace ChessDF.Test.Searching
             // Assert
             var expectedMove = new Move(Square.c7, Square.d6, MoveFlags.Capture, Piece.Knight);
             Assert.Equal(expectedMove, bestMove);
+        }
+
+        [Fact]
+        public void CanFindCheckMates()
+        {
+            // Assemble
+            var position = Position.FromFENString("8/7p/n3k2P/4n1p1/1p1K4/6q1/8/8 b - - 1 78 ");
+            var search = new Search(new BasicScoreEvaluation());
+
+            // Act
+            var bestMoves = search.SearchAlphaBeta(position, 4);
+
+            // Assert
+            var expectedMoves = new List<Move>
+            {
+                new Move(Square.g3, Square.d3, MoveFlags.QuietMove),
+                new Move(Square.g3, Square.f4, MoveFlags.QuietMove),
+            };
+
+            bestMoves.Select(b => b.move).Should().BeEquivalentTo(expectedMoves);
         }
     }
 }
