@@ -10,7 +10,7 @@ using Xunit;
 
 namespace ChessDF.Test.Magics
 {
-    public class GeneratorTests
+    public class MagicGeneratorTests
     {
         [Theory]
         [InlineData(Square.b3, 0x00_02_02_02_02_7c_02_00)]
@@ -25,7 +25,7 @@ namespace ChessDF.Test.Magics
         public void GeneratesCorrectRookMasksForSquares(Square square, ulong expectedMask)
         {
             // Act
-            Bitboard mask = Generator.RookMask(square);
+            Bitboard mask = MagicGenerator.RookMask(square);
 
             // Assert
             Assert.Equal<Bitboard>(expectedMask, mask);
@@ -44,7 +44,7 @@ namespace ChessDF.Test.Magics
         public void GeneratesCorrectBishopMasksForSquares(Square square, ulong expectedMask)
         {
             // Act
-            Bitboard mask = Generator.BishopMask(square);
+            Bitboard mask = MagicGenerator.BishopMask(square);
 
             // Assert
             Assert.Equal<Bitboard>(expectedMask, mask);
@@ -57,7 +57,7 @@ namespace ChessDF.Test.Magics
             Bitboard mask = 0x00_00_40_20_10_08_04_00; // Bishop on b1
 
             // Act
-            Bitboard[] occupancies = Generator.GetAllPossibleOccupanciesForMask(mask);
+            Bitboard[] occupancies = MagicGenerator.GetAllPossibleOccupanciesForMask(mask);
 
             // Assert
             Bitboard[] expectedOccs = new Bitboard[]
@@ -103,10 +103,21 @@ namespace ChessDF.Test.Magics
         public void CanFindAMagicNumberForASquare()
         {
             // Act
-            Bitboard magic = Generator.FindMagic(Square.a1, 100_000_000, false);
+            (Bitboard magic, int bitCount) = MagicGenerator.FindMagic(Square.a1, 100_000_000, Piece.Rook);
 
             // Assert
             Assert.NotEqual<Bitboard>(0, magic);
+            Assert.NotEqual(0, bitCount);
+        }
+
+        [Fact]
+        public void CanLoadMagicsFromEmbeddedResource()
+        {
+            // Act
+            var magics = MagicGenerator.LoadMagics();
+
+            // Assert
+            magics.Should().HaveCount(128);
         }
     }
 }

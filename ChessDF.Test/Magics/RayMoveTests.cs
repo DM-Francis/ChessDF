@@ -1,4 +1,5 @@
 ﻿using ChessDF.Core;
+using ChessDF.Magics;
 using ChessDF.Moves;
 using System;
 using System.Collections.Generic;
@@ -7,10 +8,34 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace ChessDF.Test.Moves
+namespace ChessDF.Test.Magics
 {
-    public class SlidingMoveTests
+    public class RayMoveTests
     {
+        [Theory]
+        [InlineData(Square.a1, Direction.North, 0x01_01_01_01_01_01_01_00)]
+        [InlineData(Square.a1, Direction.NorthEast, 0x80_40_20_10_08_04_02_00)]
+        [InlineData(Square.a1, Direction.East, 0x00_00_00_00_00_00_00_fe)]
+        [InlineData(Square.a1, Direction.South, 0)]
+        [InlineData(Square.a1, Direction.West, 0)]
+        [InlineData(Square.a1, Direction.SouthWest, 0)]
+        [InlineData(Square.c4, Direction.NorthWest, 0x00_00_01_02_00_00_00_00)]
+        [InlineData(Square.c4, Direction.North, 0x04_04_04_04_00_00_00_00)]
+        [InlineData(Square.c4, Direction.SouthWest, 0x00_00_00_00_00_02_01_00)]
+        [InlineData(Square.h5, Direction.West, 0x00_00_00_7f_00_00_00_00)]
+        [InlineData(Square.f1, Direction.NorthEast, 0x00_00_00_00_00_80_40_00)]
+        [InlineData(Square.e8, Direction.East, 0xe0_00_00_00_00_00_00_00)]
+        [InlineData(Square.a8, Direction.South, 0x00_01_01_01_01_01_01_01)]
+        [InlineData(Square.c6, Direction.SouthEast, 0x00_00_00_08_10_20_40_80)]
+        public void CreatesCorrectRaysForGivenSquare(Square square, Direction direction, ulong expectedAttacks)
+        {
+            // Act
+            var rayAttacks = Rays.RayAttacks(square, direction);
+
+            // Assert
+            Assert.Equal<Bitboard>(expectedAttacks, rayAttacks);
+        }
+
         [Theory]
         [InlineData(Square.d4, 0x08_08_08_08_f7_08_08_08)]
         [InlineData(Square.f2, 0x20_20_20_20_20_20_df_20)]
@@ -20,7 +45,7 @@ namespace ChessDF.Test.Moves
         public void CreatesCorrectRookAttacksForSquare(Square square, ulong expectedAttacks)
         {
             // Act
-            var rookAttacks = SlidingPieceMoves.RookAttacks(square);
+            var rookAttacks = Rays.RookAttacks(square);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, rookAttacks);
@@ -39,7 +64,7 @@ namespace ChessDF.Test.Moves
         public void CreatesCorrectBishopAttacksForSquare(Square square, ulong expectedAttacks)
         {
             // Act
-            var bishopAttacks = SlidingPieceMoves.BishopAttacks(square);
+            var bishopAttacks = Rays.BishopAttacks(square);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, bishopAttacks);
@@ -58,7 +83,7 @@ namespace ChessDF.Test.Moves
         public void CreatesCorrectQueenAttacksForSquare(Square square, ulong expectedAttacks)
         {
             // Act
-            var queenAttacks = SlidingPieceMoves.QueenAttacks(square);
+            var queenAttacks = Rays.QueenAttacks(square);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, queenAttacks);
@@ -73,7 +98,7 @@ namespace ChessDF.Test.Moves
         public void CreatesCorrectBlockedBishopAttacksForSquare(ulong occupied, Square square, ulong expectedAttacks)
         {
             // Act
-            var bishopAttacks = SlidingPieceMoves.BishopAttacks(square, occupied);
+            var bishopAttacks = Rays.BishopAttacks(square, occupied);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, bishopAttacks);
@@ -87,7 +112,7 @@ namespace ChessDF.Test.Moves
         public void CreatesCorrectBlockedRookAttacksForSquare(ulong occupied, Square square, ulong expectedAttacks)
         {
             // Act
-            var rookAttacks = SlidingPieceMoves.RookAttacks(square, occupied);
+            var rookAttacks = Rays.RookAttacks(square, occupied);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, rookAttacks);
@@ -101,7 +126,7 @@ namespace ChessDF.Test.Moves
         public void CreatesCorrectBlockedQueenAttacksForSquare(ulong occupied, Square square, ulong expectedAttacks)
         {
             // Act
-            var queenAttacks = SlidingPieceMoves.QueenAttacks(square, occupied);
+            var queenAttacks = Rays.QueenAttacks(square, occupied);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, queenAttacks);
@@ -113,7 +138,7 @@ namespace ChessDF.Test.Moves
         public void CanGetAllBishopAttacks(ulong bishops, ulong occupied, ulong expectedAttacks)
         {
             // Act
-            var attacks = SlidingPieceMoves.AllBishopAttacks(bishops, occupied);
+            var attacks = Rays.AllBishopAttacks(bishops, occupied);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, attacks);
@@ -125,7 +150,7 @@ namespace ChessDF.Test.Moves
         public void CanGetAllRookAttacks(ulong rooks, ulong occupied, ulong expectedAttacks)
         {
             // Act
-            var attacks = SlidingPieceMoves.AllRookAttacks(rooks, occupied);
+            var attacks = Rays.AllRookAttacks(rooks, occupied);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, attacks);
@@ -137,7 +162,7 @@ namespace ChessDF.Test.Moves
         public void CanGetAllQueenAttacks(ulong queens, ulong occupied, ulong expectedAttacks)
         {
             // Act
-            var attacks = SlidingPieceMoves.AllQueenAttacks(queens, occupied);
+            var attacks = Rays.AllQueenAttacks(queens, occupied);
 
             // Assert
             Assert.Equal<Bitboard>(expectedAttacks, attacks);
