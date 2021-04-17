@@ -38,10 +38,13 @@ namespace ChessDF.Moves
         public static Bitboard AllKnightAttacks(Bitboard knights)
         {
             Bitboard attacks = 0;
-            foreach(int knight in knights.Serialize())
+            var knightsSerialized = knights.Serialize();
+
+            for (int i = 0; i < knightsSerialized.Length; i++)
             {
-                attacks |= _knightAttacks[knight];
+                attacks |= _knightAttacks[knightsSerialized[i]];
             }
+
             return attacks;
         }
     }

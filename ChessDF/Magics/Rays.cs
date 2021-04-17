@@ -94,9 +94,11 @@ namespace ChessDF.Magics
         public static Bitboard AllRookAttacks(Bitboard rooks, Bitboard occupied)
         {
             Bitboard attacks = 0;
-            foreach (int rook in rooks.Serialize())
+            var rooksSerialized = rooks.Serialize();
+
+            for (int i = 0; i < rooksSerialized.Length; i++)
             {
-                attacks |= RookAttacks((Square)rook, occupied);
+                attacks |= RookAttacks((Square)rooksSerialized[i], occupied);
             }
 
             return attacks;
@@ -105,9 +107,11 @@ namespace ChessDF.Magics
         public static Bitboard AllBishopAttacks(Bitboard bishops, Bitboard occupied)
         {
             Bitboard attacks = 0;
-            foreach (int bishop in bishops.Serialize())
+            var bishopsSerialized = bishops.Serialize();
+
+            for (int i = 0; i < bishopsSerialized.Length; i++)
             {
-                attacks |= BishopAttacks((Square)bishop, occupied);
+                attacks |= BishopAttacks((Square)bishopsSerialized[i], occupied);
             }
 
             return attacks;
@@ -116,9 +120,11 @@ namespace ChessDF.Magics
         public static Bitboard AllQueenAttacks(Bitboard queens, Bitboard occupied)
         {
             Bitboard attacks = 0;
-            foreach (int queen in queens.Serialize())
+            var queensSerialized = queens.Serialize();
+
+            for (int i = 0; i < queensSerialized.Length; i++)
             {
-                attacks |= QueenAttacks((Square)queen, occupied);
+                attacks |= QueenAttacks((Square)queensSerialized[i], occupied);
             }
 
             return attacks;

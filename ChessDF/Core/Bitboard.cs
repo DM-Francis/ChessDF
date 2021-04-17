@@ -68,9 +68,12 @@ namespace ChessDF.Core
             return x;
         }
 
-        public int[] Serialize()
+        public SerializedBB Serialize()
         {
-            var output = new int[PopCount()];
+            var output = new SerializedBB
+            {
+                Length = PopCount()
+            };
 
             if (IsEmpty)
                 return output;

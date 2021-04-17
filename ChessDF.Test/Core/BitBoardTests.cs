@@ -62,11 +62,14 @@ namespace ChessDF.Test.Core
             var board = new Bitboard(0x00_00_00_00_00_00_01_01);
 
             // Act
-            int[] bitIndices = board.Serialize();
+            var bitIndices = board.Serialize();
 
             // Assert
-            var expected = new int[] { 0, 8 };
-            bitIndices.Should().BeEquivalentTo(expected);
+            var expected = new SerializedBB();
+            expected.Length = 2;
+            expected[0] = 0;
+            expected[1] = 8;
+            Assert.Equal(expected, bitIndices);
         }
 
         [Fact]

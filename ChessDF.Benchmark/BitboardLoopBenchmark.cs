@@ -31,7 +31,7 @@ namespace ChessDF.Benchmark
 
 
         [Benchmark]
-        public int[] SerializeCurrentImpl() => _bitboard.Serialize();
+        public SerializedBB SerializeCurrentImpl() => _bitboard.Serialize();
 
         [Benchmark]
         public List<int> SerializeStandardListLoop()

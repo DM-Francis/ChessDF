@@ -185,10 +185,11 @@ namespace ChessDF.BitboardTool
 
             foreach ((Color color, Bitboard bitboard) in _bitboards)
             {
-                int[] indexes = bitboard.Serialize();
+                var indexes = bitboard.Serialize();
 
-                foreach(int index in indexes)
+                for (int i = 0; i < indexes.Length; i++)
                 {
+                    int index = indexes[i];
                     (int col, int row) = ConvertIndexToPosition(index);
 
                     if (tableLayoutPanel.GetControlFromPosition(col, row) is Button button)
