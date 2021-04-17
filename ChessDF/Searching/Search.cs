@@ -105,7 +105,6 @@ namespace ChessDF.Searching
             double beta = 6000;
 
             var allMoves = MoveGenerator.GetAllMoves(position);
-            allMoves.Reverse();
             foreach (Move move in allMoves)
             {
                 Position newPosition = position.MakeMove(move);
@@ -144,7 +143,7 @@ namespace ChessDF.Searching
 
             if (depth == 0)
             {
-                double score = Quiese(position, alpha, beta, 3);
+                double score = Quiese(position, alpha, beta, 0, -3);
                 _nodeCache[hash] = new Node(depth, score, NodeType.Exact);
                 return score;
             }
@@ -179,11 +178,22 @@ namespace ChessDF.Searching
         }
 
 
-        internal double Quiese(Position position, double alpha, double beta, int depth)
+        internal double Quiese(Position position, double alpha, double beta, int depth, int maxDepth)
         {
+            ulong hash = _hashGenerator.GetHash(position);
+            if (_nodeCache.TryGetValue(hash, out Node? node) && node.Depth >= depth)
+            {
+                if (node.NodeType == NodeType.Exact)
+                    return node.Score;
+                else if (node.NodeType == NodeType.UpperBound)
+                    beta = node.Score;
+                else if (node.NodeType == NodeType.LowerBound)
+                    alpha = node.Score;
+            }
+
             double standPat = _evaluator.Evaluate(position);
 
-            if (depth == 0)
+            if (depth == maxDepth)
                 return standPat;
 
             if (standPat >= beta)
@@ -192,21 +202,32 @@ namespace ChessDF.Searching
                 alpha = standPat;
 
             var allMoves = MoveGenerator.GetAllMoves(position, onlyLegal: false);
-            foreach(Move move in allMoves)
+            NodeType nodeType = NodeType.UpperBound;
+            foreach (Move move in allMoves)
             {
                 if (!move.IsCapture)
                     continue;
 
                 Position newPosition = position.MakeMoveNoLegalCheck(move);
-                double score = -Quiese(newPosition, -beta, -alpha, depth - 1);
+                double score = -Quiese(newPosition, -beta, -alpha, depth - 1, maxDepth);
                 Mover.UndoMoveOnBoard(newPosition.Board, move);
 
                 if (score >= beta)
+                {
+                    _nodeCache[hash] = new Node(depth, beta, NodeType.LowerBound);
                     return beta;
+                }
 
                 if (score > alpha)
+                {
+                    nodeType = NodeType.Exact;
                     alpha = score;
+                }
             }
+
+            if (alpha <= -4000 && position.IsInStatemate())
+                alpha = 0;
+            _nodeCache[hash] = new Node(depth, alpha, nodeType);
 
             return alpha;
         }

@@ -93,7 +93,7 @@ namespace ChessDF.Uci
             if (_currentPosition is null)
                 throw new InvalidOperationException("Position not yet specified");
 
-            var search = new Search(new BasicScoreEvaluation(), _nodeCache, _generator, this);
+            var search = new Search(new ScoreEvalWithRandomness(), _nodeCache, _generator, this);
             IList<(Move move, double score)> bestMoves = search.SearchAlphaBeta(_currentPosition, depth ?? 5);
             int randomIndex = _rng.Next() % bestMoves.Count;
 
