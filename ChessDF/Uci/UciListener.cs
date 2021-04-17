@@ -19,9 +19,24 @@ namespace ChessDF.Uci
         private Dictionary<ulong, Node> _nodeCache = new();
         private ZobristGenerator _generator = new();
 
-        private Search? _currentSearch;
+        private AlphaBetaSearch? _currentSearch;
 
         public void Run()
+        {
+            while (true)
+            {
+                try
+                {
+                    RunInternal();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+        }
+
+        private void RunInternal()
         {
             string? rawCommand;
             while ((rawCommand = Console.ReadLine()) is not null)
@@ -93,20 +108,25 @@ namespace ChessDF.Uci
             if (_currentPosition is null)
                 throw new InvalidOperationException("Position not yet specified");
 
-            var search = new Search(new ScoreEvalWithRandomness(), _nodeCache, _generator, this);
-            IList<(Move move, double score)> bestMoves = search.SearchAlphaBeta(_currentPosition, depth ?? 5);
-            int randomIndex = _rng.Next() % bestMoves.Count;
+            _nodeCache.Clear();
+            var abSearch = new AlphaBetaSearch(new ScoreEvalWithRandomness(), _nodeCache, _generator, this);
+            var iterativeSearch = new IterativeDeepeningSearch(abSearch);
 
-            return bestMoves[randomIndex].move;
-        }
+            var maxSearchTime = TimeSpan.FromSeconds(10);
+            var tokenSource = new CancellationTokenSource(maxSearchTime);
 
-        private void StartSearch(int depth = 6)
-        {
-            if (_currentPosition is null)
-                throw new InvalidOperationException("Position not yet specified");
+            Task searchTask = iterativeSearch.Start(_currentPosition, depth ?? 10, tokenSource.Token);
 
-            _currentSearch = new Search(new BasicScoreEvaluation(), this);
-            Task searchTask = Task.Run(() => _currentSearch.SearchAlphaBeta(_currentPosition, depth));
+            try
+            {
+                searchTask.GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException) { }
+
+            var moveScores = iterativeSearch.MoveScores;
+            Move bestMove = moveScores.OrderByDescending(ms => ms.Score).ThenBy(ms => ms.Ordering).First().Move;
+
+            return bestMove;
         }
     }
 }

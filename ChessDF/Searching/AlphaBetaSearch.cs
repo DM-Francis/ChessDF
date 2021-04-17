@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 namespace ChessDF.Searching
 {
@@ -15,121 +16,64 @@ namespace ChessDF.Searching
         public List<Move> Moves { get; } = new List<Move>();
     }
 
-    internal class Search
+    internal class AlphaBetaSearch : ISearchStrategy
     {
         private readonly IEvaluator _evaluator;
         private readonly IOutput? _output;
-        private readonly List<(Move move, double score)> _bestMoves = new List<(Move move, double score)>();
+        private readonly List<SearchResult> _moveScores = new();
         private readonly ZobristGenerator _hashGenerator = new();
         private readonly Dictionary<ulong, Node> _nodeCache;
 
-        public ReadOnlyCollection<(Move move, double score)> BestMoves { get; }
+        public ReadOnlyCollection<SearchResult> MoveScores => _moveScores.AsReadOnly();
 
-        public Search(IEvaluator evaluator, IOutput? output = null)
+        public AlphaBetaSearch(IEvaluator evaluator, IOutput? output = null)
         {
             _evaluator = evaluator;
             _nodeCache = new();
             _hashGenerator = new();
             _output = output;
-            BestMoves = _bestMoves.AsReadOnly();
         }
 
-        public Search(IEvaluator evaluator, Dictionary<ulong, Node> nodeCache, ZobristGenerator generator, IOutput? output = null)
+        public AlphaBetaSearch(IEvaluator evaluator, Dictionary<ulong, Node> nodeCache, ZobristGenerator generator, IOutput? output = null)
         {
             _evaluator = evaluator;
             _nodeCache = nodeCache;
             _hashGenerator = generator;
             _output = output;
-            BestMoves = _bestMoves.AsReadOnly();
         }
 
-        public ReadOnlyCollection<(Move move, double score)> SearchNegaMax(Position position, int depth)
-        {
-            if (depth <= 0)
-                throw new ArgumentOutOfRangeException(nameof(depth), $"{depth} must be one or more.");
-
-            var allMoves = MoveGenerator.GetAllMoves(position);
-
-            double max = double.MinValue;
-
-            foreach (Move move in allMoves)
-            {
-                Position newPosition = position.MakeMove(move);
-                double score = -NegaMax(newPosition, depth - 1);
-                Mover.UndoMoveOnBoard(newPosition.Board, move);
-
-                _output?.WriteDebug($"Evaluated move {move}. Score = {score}");
-
-                if (score > max)
-                {
-                    max = score;
-                    _bestMoves.Clear();
-                    _bestMoves.Add((move, score));
-                }
-                else if (score == max)
-                {
-                    _bestMoves.Add((move, score));
-                }
-            }
-
-            return BestMoves;
-        }
-
-        internal double NegaMax(Position position, int depth)
-        {
-            if (depth == 0)
-                return _evaluator.Evaluate(position);
-
-            double max = double.MinValue;
-            var allMoves = MoveGenerator.GetAllMoves(position);
-
-            foreach (Move move in allMoves)
-            {
-                Position newPosition = position.MakeMove(move);
-                double score = -NegaMax(newPosition, depth - 1);
-                Mover.UndoMoveOnBoard(newPosition.Board, move);
-
-                if (score > max)
-                    max = score;
-            }
-
-            return max;
-        }
-
-        public ReadOnlyCollection<(Move move, double score)> SearchAlphaBeta(Position position, int depth)
+        public ReadOnlyCollection<SearchResult> Search(Position position, int depth, IEnumerable<Move>? orderedMoves = null, CancellationToken cancelToken = default)
         {
             if (depth <= 0)
                 throw new ArgumentOutOfRangeException(nameof(depth), $"{depth} must be one or more.");
 
             double alpha = -6000;
             double beta = 6000;
+            _moveScores.Clear();
 
-            var allMoves = MoveGenerator.GetAllMoves(position);
-            foreach (Move move in allMoves)
+            List<Move> allMoves;
+            if (orderedMoves is null)
+                allMoves = MoveGenerator.GetAllMoves(position);
+            else
+                allMoves = orderedMoves.ToList();
+
+            for (int i = 0; i < allMoves.Count; i++)
             {
+                Move move = allMoves[i];
                 Position newPosition = position.MakeMove(move);
-                double score = -AlphaBeta(newPosition, -beta, -alpha, depth - 1);
+                double score = -AlphaBeta(newPosition, -beta, -alpha, depth - 1, cancelToken);
                 Mover.UndoMoveOnBoard(newPosition.Board, move);
-
-                _output?.WriteDebug($"Evaluated move {move}. Score = {score}");
-
-                if (score > alpha)
-                {
-                    alpha = score;
-                    _bestMoves.Clear();
-                    _bestMoves.Add((move, score));
-                }
-                //else if (score == alpha)
-                //{
-                //    _bestMoves.Add((move, score));
-                //}
+                
+                _output?.WriteDebug($"Evaluated move {move}. Score = {score} Depth = {depth}");
+                _moveScores.Add(new SearchResult(move, score, i));
             }
 
-            return BestMoves;
+            return MoveScores;
         }
 
-        internal double AlphaBeta(Position position, double alpha, double beta, int depth)
+        internal double AlphaBeta(Position position, double alpha, double beta, int depth, CancellationToken cancelToken)
         {
+            cancelToken.ThrowIfCancellationRequested();
             ulong hash = _hashGenerator.GetHash(position);
             if (_nodeCache.TryGetValue(hash, out Node? node) && node.Depth >= depth)
             {
@@ -153,7 +97,7 @@ namespace ChessDF.Searching
             foreach (Move move in allMoves)
             {
                 Position newPosition = position.MakeMoveNoLegalCheck(move);
-                double score = -AlphaBeta(newPosition, -beta, -alpha, depth - 1);
+                double score = -AlphaBeta(newPosition, -beta, -alpha, depth - 1, cancelToken);
                 Mover.UndoMoveOnBoard(newPosition.Board, move);
 
                 if (score >= beta)
