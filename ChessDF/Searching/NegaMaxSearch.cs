@@ -27,7 +27,7 @@ namespace ChessDF.Searching
             _output = output;
         }
 
-        public ReadOnlyCollection<SearchResult> Search(Position position, int depth, IEnumerable<Move>? orderedMoves = null, CancellationToken cancelToken = default)
+        public ReadOnlyCollection<SearchResult> Search(Position position, int depth, CancellationToken cancelToken = default)
         {
             if (depth <= 0)
                 throw new ArgumentOutOfRangeException(nameof(depth), $"{depth} must be one or more.");

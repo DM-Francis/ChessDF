@@ -19,8 +19,6 @@ namespace ChessDF.Uci
         private Dictionary<ulong, Node> _nodeCache = new();
         private ZobristGenerator _generator = new();
 
-        private AlphaBetaSearch? _currentSearch;
-
         public void Run()
         {
             while (true)

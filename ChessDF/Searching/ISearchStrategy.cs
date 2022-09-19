@@ -13,6 +13,6 @@ namespace ChessDF.Searching
     public interface ISearchStrategy
     {
         ReadOnlyCollection<SearchResult> MoveScores { get; }
-        ReadOnlyCollection<SearchResult> Search(Position position, int depth, IEnumerable<Move>? orderedMoves = null, CancellationToken cancelToken = default);
+        ReadOnlyCollection<SearchResult> Search(Position position, int depth, CancellationToken cancelToken = default);
     }
 }

@@ -29,14 +29,9 @@ namespace ChessDF.Searching
 
         private void RunIterativeSearch(Position position, int maxDepth, CancellationToken cancelToken)
         {
-            var moves = MoveGenerator.GetAllMoves(position);
             for (int depth = 1; depth <= maxDepth; depth++)
             {
-                _moveScores = _searchStrategy.Search(position, depth, moves, cancelToken).ToList();
-                moves = _moveScores
-                            .OrderByDescending(ms => ms.Score)
-                            .ThenBy(ms => ms.Ordering)
-                            .Select(ms => ms.Move).ToList();
+                _moveScores = _searchStrategy.Search(position, depth, cancelToken).ToList();
             }
         }
     }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ChessDF.Searching
 {
-    public record Node(int Depth, double Score, NodeType NodeType);
+    public record Node(int Depth, double Score, NodeType NodeType, Move? BestMove);
 
     public enum NodeType
     {

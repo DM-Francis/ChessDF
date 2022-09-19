@@ -42,7 +42,7 @@ namespace ChessDF.Searching
             _output = output;
         }
 
-        public ReadOnlyCollection<SearchResult> Search(Position position, int depth, IEnumerable<Move>? orderedMoves = null, CancellationToken cancelToken = default)
+        public ReadOnlyCollection<SearchResult> Search(Position position, int depth, CancellationToken cancelToken = default)
         {
             if (depth <= 0)
                 throw new ArgumentOutOfRangeException(nameof(depth), $"{depth} must be one or more.");
@@ -51,24 +51,32 @@ namespace ChessDF.Searching
             double beta = 6000;
             _moveScores.Clear();
 
-            List<Move> allMoves;
-            if (orderedMoves is null)
-                allMoves = MoveGenerator.GetAllMoves(position);
-            else
-                allMoves = orderedMoves.ToList();
+            List<Move> allMoves = MoveGenerator.GetAllMoves(position);
+            List<Move> orderedMoves = OrderMovesBasedOnPreviousSearches(position, allMoves);
 
-            for (int i = 0; i < allMoves.Count; i++)
+            Move bestMove = orderedMoves[0];
+
+            foreach (Move move in orderedMoves)
             {
-                Move move = allMoves[i];
                 Position newPosition = position.MakeMove(move);
                 double score = -AlphaBeta(newPosition, -beta, -alpha, depth - 1, cancelToken);
                 Mover.UndoMoveOnBoard(newPosition.Board, move);
                 
                 _output?.WriteDebug($"Evaluated move {move}. Score = {score} Depth = {depth}");
-                _moveScores.Add(new SearchResult(move, score, i));
+                
+                if (score > alpha)
+                {
+                    alpha = score;
+                    bestMove = move;
+                }
             }
 
-            return MoveScores;
+            ulong hash = _hashGenerator.GetHash(position);
+            _nodeCache[hash] = new Node(depth, alpha, NodeType.Exact, bestMove);
+
+            var result = new SearchResult(bestMove, alpha, 1);
+
+            return new List<SearchResult>() { result }.AsReadOnly();
         }
 
         internal double AlphaBeta(Position position, double alpha, double beta, int depth, CancellationToken cancelToken)
@@ -88,11 +96,13 @@ namespace ChessDF.Searching
             if (depth == 0)
             {
                 double score = Quiese(position, alpha, beta, 0, -3);
-                _nodeCache[hash] = new Node(depth, score, NodeType.Exact);
+                _nodeCache[hash] = new Node(depth, score, NodeType.Exact, null);
                 return score;
             }
 
             var allMoves = MoveGenerator.GetAllMoves(position, onlyLegal: false);
+            Move? bestMove = null;
+
             NodeType nodeType = NodeType.UpperBound;
             foreach (Move move in allMoves)
             {
@@ -102,7 +112,7 @@ namespace ChessDF.Searching
 
                 if (score >= beta)
                 {
-                    _nodeCache[hash] = new Node(depth, beta, NodeType.LowerBound);
+                    _nodeCache[hash] = new Node(depth, beta, NodeType.LowerBound, move);
                     return beta;
                 }
 
@@ -110,13 +120,14 @@ namespace ChessDF.Searching
                 {
                     nodeType = NodeType.Exact;
                     alpha = score;
+                    bestMove = move;
                 }
             }
 
             if (alpha <= -4000 && position.IsInStatemate())
                 alpha = 0;
 
-            _nodeCache[hash] = new Node(depth, alpha, nodeType);
+            _nodeCache[hash] = new Node(depth, alpha, nodeType, bestMove);
 
             return alpha;
         }
@@ -146,6 +157,8 @@ namespace ChessDF.Searching
                 alpha = standPat;
 
             var allMoves = MoveGenerator.GetAllMoves(position, onlyLegal: false);
+            Move? bestMove = null;
+
             NodeType nodeType = NodeType.UpperBound;
             foreach (Move move in allMoves)
             {
@@ -158,7 +171,7 @@ namespace ChessDF.Searching
 
                 if (score >= beta)
                 {
-                    _nodeCache[hash] = new Node(depth, beta, NodeType.LowerBound);
+                    _nodeCache[hash] = new Node(depth, beta, NodeType.LowerBound, move);
                     return beta;
                 }
 
@@ -171,9 +184,36 @@ namespace ChessDF.Searching
 
             if (alpha <= -4000 && position.IsInStatemate())
                 alpha = 0;
-            _nodeCache[hash] = new Node(depth, alpha, nodeType);
+            _nodeCache[hash] = new Node(depth, alpha, nodeType, bestMove);
 
             return alpha;
+        }
+
+        private List<Move> OrderMovesBasedOnPreviousSearches(Position position, IEnumerable<Move> moves)
+        {
+            var moveScores = new List<(Move Move, Double Score)>();
+            foreach (Move move in moves)
+            {
+                Position newPosition = position.MakeMoveNoLegalCheck(move);
+                ulong hash = _hashGenerator.GetHash(newPosition);
+                Mover.UndoMoveOnBoard(newPosition.Board, move);
+
+                if (_nodeCache.TryGetValue(hash, out Node? node))
+                {
+                    if (node.NodeType == NodeType.Exact)
+                        moveScores.Add((move, node.Score));
+                    else if (node.NodeType == NodeType.UpperBound)
+                        moveScores.Add((move, -6000));
+                    else if (node.NodeType == NodeType.LowerBound)
+                        moveScores.Add((move, node.Score));
+                }
+                else
+                {
+                    moveScores.Add((move, -6000));
+                }
+            }
+
+            return moveScores.OrderByDescending(ms => ms.Score).Select(ms => ms.Move).ToList();
         }
     }
 }
