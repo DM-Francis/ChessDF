@@ -22,24 +22,30 @@ public class AlphaBetaSearch : ISearch
 
     public Move BestMove { get; private set; }
     public int NodesSearched { get; private set; }
+    public Move? SearchFirst { get; set; }
 
-    public void Search(Position position, int depth, CancellationToken cancellationToken = default)
+    public void Search(Position position, int maxDepth, CancellationToken cancellationToken = default)
     {
-        if (depth <= 0)
-            throw new ArgumentOutOfRangeException(nameof(depth), $"{depth} must be one or more.");
+        if (maxDepth <= 0)
+            throw new ArgumentOutOfRangeException(nameof(maxDepth), $"{maxDepth} must be one or more.");
 
+        BestMove = default;
         double alpha = double.NegativeInfinity;
         double beta = double.PositiveInfinity;
 
         NodesSearched = 1;
         int moveNum = 0;
-        foreach (var move in position.GetAllLegalMoves().OrderBy(x => _rng.Next()))
+        var allMovesOrdered = position.GetAllLegalMoves().OrderByDescending(x => x == SearchFirst);
+        foreach (var move in allMovesOrdered)
         {
             moveNum++;
             _output?.WriteCurrentMoveInfo(move, moveNum);
             Position newPosition = position.MakeMoveNoLegalCheck(move);
-            double score = -AlphaBeta(newPosition, -beta, -alpha, depth - 1);
+            double score = -AlphaBeta(newPosition, -beta, -alpha, maxDepth - 1, cancellationToken);
             Mover.UndoMoveOnBoard(newPosition.Board, move);
+
+            if (cancellationToken.IsCancellationRequested)
+                return;
             
             if (score > alpha)
             {
@@ -47,13 +53,13 @@ public class AlphaBetaSearch : ISearch
                 BestMove = move;
             }
 
-            _output?.WriteBestLineInfo(depth, alpha, NodesSearched, new []{BestMove});
+            _output?.WriteBestLineInfo(maxDepth, alpha, NodesSearched, new []{BestMove});
         }
 
         _output?.WriteDebug($"Best move: {BestMove}. Nodes searched: {NodesSearched}");
     }
 
-    internal double AlphaBeta(Position position, double alpha, double beta, int depth)
+    internal double AlphaBeta(Position position, double alpha, double beta, int depth, CancellationToken cancelToken = default)
     {
         NodesSearched++;
         if (position.IsInCheckmate())
@@ -73,6 +79,9 @@ public class AlphaBetaSearch : ISearch
             double score = -AlphaBeta(newPosition, -beta, -alpha, depth - 1);
             Mover.UndoMoveOnBoard(newPosition.Board, move);
 
+            if (cancelToken.IsCancellationRequested)
+                break;
+            
             if (score >= beta)
                 return beta;
             if (score > alpha)

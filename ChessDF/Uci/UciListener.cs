@@ -109,7 +109,7 @@ namespace ChessDF.Uci
             if (_currentPosition is null)
                 throw new InvalidOperationException("Position not yet specified");
 
-            var search = new AlphaBetaSearch(new BasicScoreEvaluation(), this);
+            var search = new IterativeDeepeningSearch(new BasicScoreEvaluation(), this);
             search.Search(_currentPosition, depth);
 
             return search.BestMove;
