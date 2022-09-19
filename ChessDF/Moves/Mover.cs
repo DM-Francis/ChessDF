@@ -84,10 +84,7 @@ namespace ChessDF.Moves
 
         public static bool KingIsInCheck(Side side, Board board)
         {
-            Bitboard king = board[side, Piece.King];
-            Bitboard enemyAttacks = board.AttacksBy(side.OpposingSide());
-
-            return (king & enemyAttacks) != 0;
+            return board.IsAttacked(board[side, Piece.King], side.OpposingSide());
         }
 
         public static void ApplyMoveToBoard(Board board, Move move, out Piece fromPiece)

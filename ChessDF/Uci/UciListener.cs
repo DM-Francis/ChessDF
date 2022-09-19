@@ -19,7 +19,7 @@ namespace ChessDF.Uci
         private Dictionary<ulong, Node> _nodeCache = new();
         private ZobristGenerator _generator = new();
 
-        private const int DefaultSearchDepth = 5;
+        private const int DefaultSearchDepth = 6;
 
         public void Run()
         {
@@ -93,7 +93,7 @@ namespace ChessDF.Uci
             if (_currentPosition is null)
                 throw new InvalidOperationException("Position not yet specified");
 
-            var search = new AlphaBetaSearch(new ScoreEvalWithRandomness(), this);
+            var search = new AlphaBetaSearch(new BasicScoreEvaluation(), this);
             search.Search(_currentPosition, depth);
 
             return search.BestMove;

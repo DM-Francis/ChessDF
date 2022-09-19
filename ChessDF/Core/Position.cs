@@ -18,7 +18,7 @@ namespace ChessDF.Core
             HalfmoveClock = halfmoveClock;
 
             _kingIsInCheck = new Lazy<bool>(() => Mover.KingIsInCheck(sideToMove, board));
-            _legalMoves = new Lazy<List<Move>>(() => MoveGenerator.GetAllMoves(this));
+            _legalMoves = new Lazy<List<Move>>(() => MoveGenerator.GetAllMoves(this, onlyLegal: true));
         }
 
         private readonly Lazy<bool> _kingIsInCheck;
@@ -64,10 +64,12 @@ namespace ChessDF.Core
 
         public bool IsInStalemate()
         {
-            if (Board[SideToMove, Piece.King] == 0)
+            if (!HasKing())
                 return false;
 
             return !_kingIsInCheck.Value && NoLegalMoves;
         }
+
+        public bool HasKing() => Board[SideToMove, Piece.King] != 0;
     }
 }

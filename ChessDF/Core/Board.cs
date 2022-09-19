@@ -88,6 +88,26 @@ namespace ChessDF.Core
             return pawnAttacks | knightAttacks | bishopAttacks | rookAttacks | queenAttacks | kingAttacks;
         }
 
+        public bool IsAttacked(Bitboard squareBB, Side side)
+        {
+            Bitboard pawnAttacks = PawnMoves.AllPawnAttacks(this[side, Piece.Pawn], side);
+            if ((pawnAttacks & squareBB) > 0) return true;
+            
+            Bitboard knightAttacks = KnightMoves.AllKnightAttacks(this[side, Piece.Knight]);
+            if ((knightAttacks & squareBB) > 0) return true;
+            
+            Bitboard bishopAttacks = SlidingPieceMoves.AllBishopAttacks(this[side, Piece.Bishop] ^ this[side, Piece.Queen], this.OccupiedSquares);
+            if ((bishopAttacks & squareBB) > 0) return true;
+            
+            Bitboard rookAttacks = SlidingPieceMoves.AllRookAttacks(this[side, Piece.Rook] ^ this[side, Piece.Queen], this.OccupiedSquares);
+            if ((rookAttacks & squareBB) > 0) return true;
+            
+            Bitboard kingAttacks = KingMoves.KingAttacks(this[side, Piece.King]);
+            if ((kingAttacks & squareBB) > 0) return true;
+
+            return false;
+        }
+
         public (Side side, Piece piece) GetPieceOnSquare(Square square)
         {
             for (int s = 0; s < 2; s++)
