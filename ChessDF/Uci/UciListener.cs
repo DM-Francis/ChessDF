@@ -19,7 +19,7 @@ namespace ChessDF.Uci
         private Dictionary<ulong, Node> _nodeCache = new();
         private ZobristGenerator _generator = new();
 
-        private Search? _currentSearch;
+        private const int DefaultSearchDepth = 5;
 
         public void Run()
         {
@@ -60,7 +60,7 @@ namespace ChessDF.Uci
 
                     if (!goCommand.Infinite)
                     {
-                        Move move = SearchForBestMove(goCommand.Depth);
+                        Move move = SearchForBestMove(goCommand.Depth ?? DefaultSearchDepth);
                         Console.WriteLine(new BestMoveCommand(move));
                     }
                 }
@@ -88,25 +88,15 @@ namespace ChessDF.Uci
             return availableMoves[randomIndex];
         }
 
-        private Move SearchForBestMove(int? depth)
+        private Move SearchForBestMove(int depth)
         {
             if (_currentPosition is null)
                 throw new InvalidOperationException("Position not yet specified");
 
-            var search = new Search(new ScoreEvalWithRandomness(), _nodeCache, _generator, this);
-            IList<(Move move, double score)> bestMoves = search.SearchAlphaBeta(_currentPosition, depth ?? 5);
-            int randomIndex = _rng.Next() % bestMoves.Count;
+            var search = new AlphaBetaSearch(new ScoreEvalWithRandomness(), this);
+            search.Search(_currentPosition, depth);
 
-            return bestMoves[randomIndex].move;
-        }
-
-        private void StartSearch(int depth = 6)
-        {
-            if (_currentPosition is null)
-                throw new InvalidOperationException("Position not yet specified");
-
-            _currentSearch = new Search(new BasicScoreEvaluation(), this);
-            Task searchTask = Task.Run(() => _currentSearch.SearchAlphaBeta(_currentPosition, depth));
+            return search.BestMove;
         }
     }
 }

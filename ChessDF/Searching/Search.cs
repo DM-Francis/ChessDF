@@ -75,7 +75,7 @@ namespace ChessDF.Searching
             return BestMoves;
         }
 
-        internal double NegaMax(Position position, int depth)
+        internal double NegaMax(Position position, int depth) 
         {
             if (depth == 0)
                 return _evaluator.Evaluate(position);
@@ -169,7 +169,7 @@ namespace ChessDF.Searching
                 }
             }
 
-            if (alpha <= -4000 && position.IsInStatemate())
+            if (alpha <= -4000 && position.IsInStalemate())
                 alpha = 0;
 
             _nodeCache[hash] = new Node(depth, alpha, nodeType);
@@ -225,7 +225,7 @@ namespace ChessDF.Searching
                 }
             }
 
-            if (alpha <= -4000 && position.IsInStatemate())
+            if (alpha <= -4000 && position.IsInStalemate())
                 alpha = 0;
             _nodeCache[hash] = new Node(depth, alpha, nodeType);
 

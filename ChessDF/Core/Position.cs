@@ -7,8 +7,26 @@ using System.Threading.Tasks;
 
 namespace ChessDF.Core
 {
-    public record Position(Board Board, Side SideToMove, Square? EnPassantSquare, CastlingRights CastlingRights, int HalfmoveClock)
+    public record Position
     {
+        public Position(Board board, Side sideToMove, Square? enPassantSquare, CastlingRights castlingRights, int halfmoveClock)
+        {
+            Board = board;
+            SideToMove = sideToMove;
+            EnPassantSquare = enPassantSquare;
+            CastlingRights = castlingRights;
+            HalfmoveClock = halfmoveClock;
+
+            _kingIsInCheck = new Lazy<bool>(() => Mover.KingIsInCheck(sideToMove, board));
+            _legalMoves = new Lazy<List<Move>>(() => MoveGenerator.GetAllMoves(this));
+        }
+
+        private readonly Lazy<bool> _kingIsInCheck;
+        private readonly Lazy<List<Move>> _legalMoves;
+        private bool NoLegalMoves => _legalMoves.Value.Count == 0;
+        
+        
+        public List<Move> GetAllLegalMoves() => _legalMoves.Value;
         public int FullMoveNumber { get; init; } = 1;
 
         public Side OpposingSide => SideToMove switch
@@ -30,28 +48,26 @@ namespace ChessDF.Core
         }
 
         public static Position StartPosition => FromFENString(FEN.StartingPosition.ToString());
+        public Board Board { get; init; }
+        public Side SideToMove { get; init; }
+        public Square? EnPassantSquare { get; init; }
+        public CastlingRights CastlingRights { get; init; }
+        public int HalfmoveClock { get; init; }
 
         public string ToFENString()
             => new FEN(Board.ToPiecePlacementString(), SideToMove, CastlingRights, EnPassantSquare, HalfmoveClock, FullMoveNumber).ToString();
 
-
         public bool IsInCheckmate()
         {
-            bool isInCheck = Mover.KingIsInCheck(SideToMove, Board);
-            bool noLegalMoves = MoveGenerator.GetAllMoves(this).Count == 0;
-
-            return isInCheck && noLegalMoves;
+            return _kingIsInCheck.Value && NoLegalMoves;
         }
 
-        public bool IsInStatemate()
+        public bool IsInStalemate()
         {
             if (Board[SideToMove, Piece.King] == 0)
                 return false;
 
-            bool isInCheck = Mover.KingIsInCheck(SideToMove, Board);
-            bool noLegalMoves = MoveGenerator.GetAllMoves(this).Count == 0;
-
-            return !isInCheck && noLegalMoves;
+            return !_kingIsInCheck.Value && NoLegalMoves;
         }
     }
 }
