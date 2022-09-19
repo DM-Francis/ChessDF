@@ -35,7 +35,11 @@ public class AlphaBetaSearch : ISearch
 
         NodesSearched = 1;
         int moveNum = 0;
-        var allMovesOrdered = position.GetAllLegalMoves().OrderByDescending(x => x == SearchFirst);
+        var allMovesOrdered = position
+            .GetAllLegalMoves()
+            .OrderByDescending(x => x == SearchFirst)
+            .ThenByDescending(x => x.IsCapture)
+            .ThenBy(x => _rng.Next());
         foreach (var move in allMovesOrdered)
         {
             moveNum++;
@@ -73,7 +77,11 @@ public class AlphaBetaSearch : ISearch
             return Quiese(position, alpha, beta, 0, -3);
         }
 
-        foreach (var move in position.GetAllLegalMoves())
+        var allMovesOrdered = position
+            .GetAllLegalMoves()
+            .OrderByDescending(x => x.IsCapture);
+
+        foreach (var move in allMovesOrdered)
         {
             Position newPosition = position.MakeMoveNoLegalCheck(move);
             double score = -AlphaBeta(newPosition, -beta, -alpha, depth - 1);

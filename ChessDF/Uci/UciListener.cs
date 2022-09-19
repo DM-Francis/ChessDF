@@ -60,7 +60,7 @@ namespace ChessDF.Uci
 
                     if (!goCommand.Infinite)
                     {
-                        Move move = SearchForBestMove(goCommand.Depth ?? DefaultSearchDepth);
+                        Move move = SearchForBestMove(goCommand);
                         Console.WriteLine(new BestMoveCommand(move));
                     }
                 }
@@ -85,7 +85,8 @@ namespace ChessDF.Uci
         public void WriteBestLineInfo(int depth, double score, int nodes, Move[] bestLine)
         {
             var bestLineMoveStrings = bestLine.Select(m => m.ToUciMoveString());
-            Console.WriteLine($"info depth {depth} score cp {score * 100} nodes {nodes} pv {string.Join(' ', bestLineMoveStrings)}");
+            var scoreCentipawns = score * 100;
+            Console.WriteLine($"info depth {depth} score cp {Math.Round(scoreCentipawns)} nodes {nodes} pv {string.Join(' ', bestLineMoveStrings)}");
         }
 
         public void WriteInfo(Move currentMove, int currentMoveNumber, int nodes, double score)
@@ -104,14 +105,23 @@ namespace ChessDF.Uci
             return availableMoves[randomIndex];
         }
 
-        private Move SearchForBestMove(int depth)
+        private Move SearchForBestMove(GoCommand goCommand)
         {
             if (_currentPosition is null)
                 throw new InvalidOperationException("Position not yet specified");
 
-            var search = new IterativeDeepeningSearch(new BasicScoreEvaluation(), this);
-            search.Search(_currentPosition, depth);
+            int? time = _currentPosition.SideToMove == Side.White ? goCommand.WTime : goCommand.BTime;
 
+            var search = new IterativeDeepeningSearch(new BasicScoreEvaluation(), this);
+            CancellationToken cancelToken = default;
+            if (time is not null)
+            {
+                int timeForCurrentMove = time.Value / 10;
+                var tokenSource = new CancellationTokenSource(timeForCurrentMove);
+                cancelToken = tokenSource.Token;
+            }
+
+            search.Search(_currentPosition, goCommand.Depth ?? DefaultSearchDepth, cancelToken);
             return search.BestMove;
         }
     }

@@ -19,7 +19,7 @@ namespace ChessDF.Evaluation
                 + (position.Board.WhiteKnights.PopCount() - position.Board.BlackKnights.PopCount()) * 3
                 + (position.Board.WhitePawns.PopCount() - position.Board.BlackPawns.PopCount()) * 1;
 
-            int totalMovesAvailable = MoveGenerator.GetAllMoves(position, onlyLegal: true).Count;
+            int totalMovesAvailable = position.GetAllLegalMoves().Count;
             int enemyMovesAvailable = MoveGenerator.GetAllMoves(position with { SideToMove = position.OpposingSide }, onlyLegal: true).Count;
 
             score += 0.1 * (totalMovesAvailable - enemyMovesAvailable);
