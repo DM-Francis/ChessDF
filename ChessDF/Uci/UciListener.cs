@@ -77,6 +77,22 @@ namespace ChessDF.Uci
             Console.WriteLine(new InfoCommand(text));
         }
 
+        public void WriteCurrentMoveInfo(Move currentMove, int currentMoveNumber)
+        {
+            Console.WriteLine($"info currmove {currentMove.ToUciMoveString()} currmovenumber {currentMoveNumber}");
+        }
+
+        public void WriteBestLineInfo(int depth, double score, int nodes, Move[] bestLine)
+        {
+            var bestLineMoveStrings = bestLine.Select(m => m.ToUciMoveString());
+            Console.WriteLine($"info depth {depth} score cp {score * 100} nodes {nodes} pv {string.Join(' ', bestLineMoveStrings)}");
+        }
+
+        public void WriteInfo(Move currentMove, int currentMoveNumber, int nodes, double score)
+        {
+            Console.WriteLine($"info currmove {currentMove.ToUciMoveString()} nodes {nodes} score cp {score * 100}" );
+        }
+
         private Move GetRandomMove()
         {
             if (_currentPosition is null)

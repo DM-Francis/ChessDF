@@ -51,6 +51,25 @@ namespace ChessDF.Moves
         public static bool operator !=(Move left, Move right) => !(left == right);
         public override string ToString() => IsCapture ? $"{From}x{To}" : $"{From}->{To}";
 
+        public string ToUciMoveString()
+        {
+            if (IsPromotion)
+            {
+                char promoChar = PromotionPiece switch
+                {
+                    Piece.Bishop => 'b',
+                    Piece.Knight => 'n',
+                    Piece.Rook => 'r',
+                    Piece.Queen => 'q',
+                    _ => throw new InvalidOperationException($"Invalid piece for promotion '{PromotionPiece}'")
+                };
+
+                return $"{From}{To}{promoChar}";
+            }
+
+            return $"{From}{To}";
+        }
+
         public static Move FromStringAndPosition(string moveString, Position position)
         {
             var moveStringRegex = new Regex("[a-h][1-8][a-h][1-8][nbrq]?");

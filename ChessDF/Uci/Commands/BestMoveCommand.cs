@@ -16,23 +16,7 @@ namespace ChessDF.Uci.Commands
 
         public BestMoveCommand(Move move)
         {
-            if (move.IsPromotion)
-            {
-                char promoChar = move.PromotionPiece switch
-                {
-                    Piece.Bishop => 'b',
-                    Piece.Knight => 'n',
-                    Piece.Rook => 'r',
-                    Piece.Queen => 'q',
-                    _ => throw new InvalidOperationException($"Invalid piece for promotion '{move.PromotionPiece}'")
-                };
-
-                MoveString = $"{move.From}{move.To}{promoChar}";
-            }
-            else
-            {
-                MoveString = $"{move.From}{move.To}";
-            }
+            MoveString = move.ToUciMoveString();
         }
 
         public override string ToString()
