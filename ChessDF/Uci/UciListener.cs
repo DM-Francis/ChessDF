@@ -19,7 +19,7 @@ namespace ChessDF.Uci
         private Dictionary<ulong, Node> _nodeCache = new();
         private ZobristGenerator _generator = new();
 
-        private const int DefaultSearchDepth = 6;
+        private const int DefaultMaxSearchDepth = 10;
 
         public void Run()
         {
@@ -116,12 +116,12 @@ namespace ChessDF.Uci
             CancellationToken cancelToken = default;
             if (time is not null)
             {
-                int timeForCurrentMove = time.Value / 10;
+                int timeForCurrentMove = time.Value / 20;
                 var tokenSource = new CancellationTokenSource(timeForCurrentMove);
                 cancelToken = tokenSource.Token;
             }
 
-            search.Search(_currentPosition, goCommand.Depth ?? DefaultSearchDepth, cancelToken);
+            search.Search(_currentPosition, goCommand.Depth ?? DefaultMaxSearchDepth, cancelToken);
             return search.BestMove;
         }
     }

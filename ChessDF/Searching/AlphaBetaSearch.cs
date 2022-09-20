@@ -10,6 +10,9 @@ namespace ChessDF.Searching;
 
 public class AlphaBetaSearch : ISearch
 {
+    private const double MinScore = -6000;
+    private const double MaxScore = 6000;
+    
     private readonly IEvaluator _evaluator;
     private readonly IOutput? _output;
     private readonly Random _rng = new();
@@ -30,8 +33,8 @@ public class AlphaBetaSearch : ISearch
             throw new ArgumentOutOfRangeException(nameof(maxDepth), $"{maxDepth} must be one or more.");
 
         BestMove = default;
-        double alpha = double.NegativeInfinity;
-        double beta = double.PositiveInfinity;
+        double alpha = MinScore;
+        double beta = MaxScore;
 
         NodesSearched = 1;
         int moveNum = 0;
@@ -67,7 +70,7 @@ public class AlphaBetaSearch : ISearch
     {
         NodesSearched++;
         if (position.IsInCheckmate())
-            return double.NegativeInfinity;
+            return MinScore;
 
         if (position.IsInStalemate())
             return 0;

@@ -34,8 +34,11 @@ public class IterativeDeepeningSearch : ISearch
             _alphaBeta.Search(position, d, cancellationToken);
 
             if (cancellationToken.IsCancellationRequested)
+            {
+                _output?.WriteDebug($"Time expired. Using move from depth {d - 1}");
                 return;
-            
+            }
+
             BestMove = _alphaBeta.BestMove;
         }
     }
