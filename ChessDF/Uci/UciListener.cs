@@ -16,8 +16,8 @@ namespace ChessDF.Uci
     {
         private static readonly Random _rng = new Random();
         private Position? _currentPosition;
-        private Dictionary<ulong, Node> _nodeCache = new();
-        private ZobristGenerator _generator = new();
+        private ISearch? _search;
+        private CancellationTokenSource? _cancellationTokenSource = new CancellationTokenSource();
 
         private const int DefaultMaxSearchDepth = 10;
 
@@ -66,8 +66,8 @@ namespace ChessDF.Uci
                 }
                 else if (commandName == Command.Stop)
                 {
-                    Move move = GetRandomMove();
-                    Console.WriteLine(new BestMoveCommand(move));
+                    _cancellationTokenSource?.Cancel();
+                    Console.WriteLine(new BestMoveCommand(_search?.BestMove ?? GetRandomMove()));
                 }
             }
         }
@@ -112,17 +112,16 @@ namespace ChessDF.Uci
 
             int? time = _currentPosition.SideToMove == Side.White ? goCommand.WTime : goCommand.BTime;
 
-            var search = new IterativeDeepeningSearch(new BasicScoreEvaluation(), this);
-            CancellationToken cancelToken = default;
+            _search = new IterativeDeepeningSearch(new BasicScoreEvaluation(), this);
             if (time is not null)
             {
-                int timeForCurrentMove = time.Value / 20;
-                var tokenSource = new CancellationTokenSource(timeForCurrentMove);
-                cancelToken = tokenSource.Token;
+                int timeForCurrentMove = Math.Min(time.Value / 20, 10000);
+                _cancellationTokenSource = new CancellationTokenSource(timeForCurrentMove);
             }
 
-            search.Search(_currentPosition, goCommand.Depth ?? DefaultMaxSearchDepth, cancelToken);
-            return search.BestMove;
+            CancellationToken cancelToken = _cancellationTokenSource?.Token ?? default;
+            _search.Search(_currentPosition, goCommand.Depth ?? DefaultMaxSearchDepth, cancelToken);
+            return _search.BestMove;
         }
     }
 }
