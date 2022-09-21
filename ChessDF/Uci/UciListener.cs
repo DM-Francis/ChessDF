@@ -101,7 +101,7 @@ namespace ChessDF.Uci
 
             int? time = _currentPosition.SideToMove == Side.White ? goCommand.WTime : goCommand.BTime;
 
-            _search = new IterativeDeepeningSearch(new BasicScoreEvaluation(), this);
+            _search = new IterativeDeepeningSearch(new PieceTableEvaluation(), this);
             if (time is not null)
             {
                 int timeForCurrentMove = Math.Min(time.Value / 20, 10000);
