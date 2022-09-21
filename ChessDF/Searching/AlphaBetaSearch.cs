@@ -26,6 +26,7 @@ public class AlphaBetaSearch : ISearch
     }
 
     public Move BestMove { get; private set; }
+    public double BestMoveScore { get; private set; }
     public int NodesSearched { get; private set; }
     public Move? SearchFirst { get; set; }
 
@@ -64,6 +65,7 @@ public class AlphaBetaSearch : ISearch
             {
                 alpha = score;
                 BestMove = move;
+                BestMoveScore = score;
                 _principalVariation.Clear();
                 _principalVariation.Add(move);
                 _principalVariation.AddRange(line);

@@ -21,6 +21,7 @@ public class IterativeDeepeningSearch : ISearch
     }
     
     public Move BestMove { get; private set; }
+    public double BestMoveScore { get; private set; }
     public int NodesSearched => _alphaBeta.NodesSearched;
     
     public void Search(Position position, int maxDepth, CancellationToken cancellationToken = default)
@@ -35,11 +36,17 @@ public class IterativeDeepeningSearch : ISearch
 
             if (cancellationToken.IsCancellationRequested)
             {
-                _output?.WriteDebug($"Time expired. Using move from depth {d - 1}");
+                _output?.WriteDebug($"Cancelling current depth search, using best move");
+                if (_alphaBeta.BestMove != default && _alphaBeta.BestMoveScore >= BestMoveScore)
+                {
+                    BestMove = _alphaBeta.BestMove;
+                    BestMoveScore = _alphaBeta.BestMoveScore;
+                }
                 return;
             }
 
             BestMove = _alphaBeta.BestMove;
+            BestMoveScore = _alphaBeta.BestMoveScore;
         }
     }
 }

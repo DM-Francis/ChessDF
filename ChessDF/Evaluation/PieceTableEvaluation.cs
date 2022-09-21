@@ -15,18 +15,21 @@ namespace ChessDF.Evaluation
                 + (position.Board.WhiteKnights.PopCount() - position.Board.BlackKnights.PopCount()) * 3.2
                 + (position.Board.WhitePawns.PopCount() - position.Board.BlackPawns.PopCount()) * 1;
 
-            materialScore = position.SideToMove == Side.White ? materialScore : -materialScore;
-
             double pawnPositionScore = PiecePositionScore(position.Board.WhitePawns, PawnTableWhite) - PiecePositionScore(position.Board.BlackPawns, PawnTableBlack);
             double knightPositionScore = PiecePositionScore(position.Board.WhiteKnights, KnightTableWhite) - PiecePositionScore(position.Board.BlackKnights, KnightTableBlack);
             double bishopPositionScore = PiecePositionScore(position.Board.WhiteBishops, BishopTableWhite) - PiecePositionScore(position.Board.BlackBishops, BishopTableBlack);
             double rookPositionScore = PiecePositionScore(position.Board.WhiteRooks, RookTableWhite) - PiecePositionScore(position.Board.BlackRooks, RookTableBlack);
             double queenPositionScore = PiecePositionScore(position.Board.WhiteQueens, QueenTableWhite) - PiecePositionScore(position.Board.BlackQueens, QueenTableBlack);
-            double kingPositionScore = PiecePositionScore(position.Board.WhiteKing, KingTableWhite) - PiecePositionScore(position.Board.BlackKing, KingTableBlack);
+
+            bool isEndgame = IsEndGame(position);
+            var kingTableWhite = isEndgame ? KingTableWhiteEnd : KingTableWhiteMid;
+            var kingTableBlack = isEndgame ? KingTableBlackEnd : KingTableBlackMid;
+            double kingPositionScore = PiecePositionScore(position.Board.WhiteKing, kingTableWhite) - PiecePositionScore(position.Board.BlackKing, kingTableBlack);
 
             double positionScore = pawnPositionScore + knightPositionScore + bishopPositionScore + rookPositionScore + queenPositionScore + kingPositionScore;
 
-            return materialScore + positionScore;
+            double total = materialScore + positionScore;
+            return position.SideToMove == Side.White ? total : -total;
         }
 
         private static double PiecePositionScore(Bitboard positions, double[] scoreTable)
@@ -35,10 +38,16 @@ namespace ChessDF.Evaluation
             double score = 0;
             for (int i = 0; i < pieces.Length; i++)
             {
-                score += scoreTable[i] / 100;
+                score += scoreTable[pieces[i]] / 100;
             }
 
             return score;
+        }
+
+        private static bool IsEndGame(Position position)
+        {
+            return position.Board[Side.White, Piece.Queen] == 0
+                && position.Board[Side.Black, Piece.Queen] == 0;
         }
 
         private static double[] CopyAndReverse(double[] scoreTable) => scoreTable.Reverse().ToArray();
@@ -114,7 +123,7 @@ namespace ChessDF.Evaluation
 
         private static readonly double[] QueenTableWhite = CopyAndReverse(QueenTableBlack);
 
-        private static readonly double[] KingTableBlack = new double[]
+        private static readonly double[] KingTableBlackMid = new double[]
         {
             -30,-40,-40,-50,-50,-40,-40,-30,
             -30,-40,-40,-50,-50,-40,-40,-30,
@@ -126,6 +135,20 @@ namespace ChessDF.Evaluation
              20, 30, 10,  0,  0, 10, 30, 20
         };
 
-        private static readonly double[] KingTableWhite = CopyAndReverse(KingTableBlack);
+        private static readonly double[] KingTableWhiteMid = CopyAndReverse(KingTableBlackMid);
+
+        private static readonly double[] KingTableBlackEnd = new double[]
+        {
+            -50,-40,-30,-20,-20,-30,-40,-50,
+            -30,-20,-10,  0,  0,-10,-20,-30,
+            -30,-10, 20, 30, 30, 20,-10,-30,
+            -30,-10, 30, 40, 40, 30,-10,-30,
+            -30,-10, 30, 40, 40, 30,-10,-30,
+            -30,-10, 20, 30, 30, 20,-10,-30,
+            -30,-30,  0,  0,  0,  0,-30,-30,
+            -50,-30,-30,-30,-30,-30,-30,-50
+        };
+
+        private static readonly double[] KingTableWhiteEnd = CopyAndReverse(KingTableBlackEnd);
     }
 }
