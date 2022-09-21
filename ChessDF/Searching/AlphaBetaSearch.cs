@@ -13,6 +13,7 @@ public class AlphaBetaSearch : ISearch
 {
     private const double MinScore = -6000;
     private const double MaxScore = 6000;
+    private const double MateValue = 4000;
     
     private readonly IEvaluator _evaluator;
     private readonly IOutput? _output;
@@ -80,7 +81,7 @@ public class AlphaBetaSearch : ISearch
 
         NodesSearched++;
         if (position.IsInCheckmate())
-            return MinScore;
+            return -(MateValue + depth);  // Ensure quicker checkmates are better than later ones
 
         if (position.IsInStalemate())
             return 0;
@@ -127,13 +128,18 @@ public class AlphaBetaSearch : ISearch
 
         if (standPat >= beta)
             return beta;
-        if (alpha < standPat)
+        if (standPat > alpha)
             alpha = standPat;
 
         var allMoves = MoveGenerator.GetAllMoves(position, onlyLegal: false);
         foreach (Move move in allMoves)
         {
             if (!move.IsCapture)
+                continue;
+
+            double swingValue = move.CapturedPiece!.Value.ScoreValue();
+
+            if (standPat + swingValue < alpha - 2) // Delta pruning.  If capturing can't get us close to alpha, then don't both analysing the move
                 continue;
 
             Position newPosition = position.MakeMoveNoLegalCheck(move);

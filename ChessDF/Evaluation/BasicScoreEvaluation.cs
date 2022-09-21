@@ -24,4 +24,21 @@ namespace ChessDF.Evaluation
                 return -1 * score;
         }
     }
+
+    public static class BasicScoreExtensions
+    {
+        public static double ScoreValue(this Piece piece)
+        {
+            return piece switch
+            {
+                Piece.Pawn => 1,
+                Piece.Knight => 3.2,
+                Piece.Bishop => 3.3,
+                Piece.Rook => 5,
+                Piece.Queen => 9,
+                Piece.King => 200,
+                _ => throw new ArgumentOutOfRangeException(nameof(piece), "Unrecognised piece type")
+            };
+        }
+    }
 }
