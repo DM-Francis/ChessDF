@@ -11,6 +11,6 @@ namespace ChessDF.Uci
     {
         void WriteDebug(string text);
         void WriteCurrentMoveInfo(Move currentMove, int currentMoveNumber);
-        void WriteBestLineInfo(int depth, double score, int nodes, Move[] bestLine);
+        void WriteBestLineInfo(int depth, double score, int nodes, IEnumerable<Move> bestLine);
     }
 }

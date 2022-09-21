@@ -21,6 +21,8 @@ namespace ChessDF.Uci
 
         private const int DefaultMaxSearchDepth = 10;
 
+        private Task? _currentSearch;
+
         public void Run()
         {
             string? rawCommand;
@@ -60,14 +62,12 @@ namespace ChessDF.Uci
 
                     if (!goCommand.Infinite)
                     {
-                        Move move = SearchForBestMove(goCommand);
-                        Console.WriteLine(new BestMoveCommand(move));
+                        KickOffSearch(goCommand);
                     }
                 }
                 else if (commandName == Command.Stop)
                 {
                     _cancellationTokenSource?.Cancel();
-                    Console.WriteLine(new BestMoveCommand(_search?.BestMove ?? GetRandomMove()));
                 }
             }
         }
@@ -82,7 +82,7 @@ namespace ChessDF.Uci
             Console.WriteLine($"info currmove {currentMove.ToUciMoveString()} currmovenumber {currentMoveNumber}");
         }
 
-        public void WriteBestLineInfo(int depth, double score, int nodes, Move[] bestLine)
+        public void WriteBestLineInfo(int depth, double score, int nodes, IEnumerable<Move> bestLine)
         {
             var bestLineMoveStrings = bestLine.Select(m => m.ToUciMoveString());
             var scoreCentipawns = score * 100;
@@ -94,18 +94,7 @@ namespace ChessDF.Uci
             Console.WriteLine($"info currmove {currentMove.ToUciMoveString()} nodes {nodes} score cp {score * 100}" );
         }
 
-        private Move GetRandomMove()
-        {
-            if (_currentPosition is null)
-                throw new InvalidOperationException("Position not yet specified");
-
-            List<Move> availableMoves = MoveGenerator.GetAllMoves(_currentPosition);
-            int randomIndex = _rng.Next() % availableMoves.Count;
-
-            return availableMoves[randomIndex];
-        }
-
-        private Move SearchForBestMove(GoCommand goCommand)
+        private void KickOffSearch(GoCommand goCommand)
         {
             if (_currentPosition is null)
                 throw new InvalidOperationException("Position not yet specified");
@@ -118,10 +107,18 @@ namespace ChessDF.Uci
                 int timeForCurrentMove = Math.Min(time.Value / 20, 10000);
                 _cancellationTokenSource = new CancellationTokenSource(timeForCurrentMove);
             }
+            else
+            {
+                _cancellationTokenSource = new CancellationTokenSource();
+            }
 
-            CancellationToken cancelToken = _cancellationTokenSource?.Token ?? default;
-            _search.Search(_currentPosition, goCommand.Depth ?? DefaultMaxSearchDepth, cancelToken);
-            return _search.BestMove;
+            CancellationToken cancelToken = _cancellationTokenSource.Token;
+            Task.Run(() =>
+            {
+                _search.Search(_currentPosition, goCommand.Depth ?? DefaultMaxSearchDepth, cancelToken);
+                var move = _search.BestMove;
+                Console.WriteLine(new BestMoveCommand(move));
+            }, cancelToken);
         }
     }
 }
