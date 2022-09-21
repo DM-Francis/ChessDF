@@ -20,22 +20,22 @@ namespace ChessDF.Evaluation
             double pawnPositionScore = PiecePositionScore(position.Board.WhitePawns, PawnTableWhite) - PiecePositionScore(position.Board.BlackPawns, PawnTableBlack);
             double knightPositionScore = PiecePositionScore(position.Board.WhiteKnights, KnightTableWhite) - PiecePositionScore(position.Board.BlackKnights, KnightTableBlack);
             double bishopPositionScore = PiecePositionScore(position.Board.WhiteBishops, BishopTableWhite) - PiecePositionScore(position.Board.BlackBishops, BishopTableBlack);
-            double rookPositionScore = PiecePositionScore(position.Board.WhiteKnights, KnightTableWhite) - PiecePositionScore(position.Board.BlackKnights, KnightTableBlack);
+            double rookPositionScore = PiecePositionScore(position.Board.WhiteRooks, RookTableWhite) - PiecePositionScore(position.Board.BlackRooks, RookTableBlack);
             double queenPositionScore = PiecePositionScore(position.Board.WhiteQueens, QueenTableWhite) - PiecePositionScore(position.Board.BlackQueens, QueenTableBlack);
             double kingPositionScore = PiecePositionScore(position.Board.WhiteKing, KingTableWhite) - PiecePositionScore(position.Board.BlackKing, KingTableBlack);
 
             double positionScore = pawnPositionScore + knightPositionScore + bishopPositionScore + rookPositionScore + queenPositionScore + kingPositionScore;
 
-            return materialScore + pawnPositionScore;
+            return materialScore + positionScore;
         }
 
         private static double PiecePositionScore(Bitboard positions, double[] scoreTable)
         {
             var pieces = positions.Serialize();
             double score = 0;
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < pieces.Length; i++)
             {
-                score += pieces[i] * scoreTable[i] / 100;
+                score += scoreTable[i] / 100;
             }
 
             return score;
