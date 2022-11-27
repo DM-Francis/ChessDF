@@ -1,10 +1,6 @@
 ﻿using ChessDF.Utils;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Intrinsics.X86;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ChessDF.Core
 {
@@ -68,12 +64,12 @@ namespace ChessDF.Core
             return x;
         }
 
-        public int[] Serialize()
+        public ReadOnlySpan<int> Serialize()
         {
-            var output = new int[PopCount()];
-
             if (IsEmpty)
-                return output;
+                return ReadOnlySpan<int>.Empty;
+
+            Span<int> output = new int[PopCount()];
 
             int i = 0;
             for (ulong x = _bits; x > 0; x &= x - 1)
@@ -84,6 +80,21 @@ namespace ChessDF.Core
             }
 
             return output;
+        }
+
+        /// <summary>
+        /// Equivalent to Serialize()[0]
+        /// </summary>
+        /// <returns>The index of the first populated square</returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public int FirstIndex()
+        {
+            if (IsEmpty)
+                throw new InvalidOperationException("Cannot get the first index because the bitboard is empty");
+
+            ulong firstBit = _bits & (0 - _bits);
+            int bitIndex = BitUtils.BitScanForward(firstBit);
+            return bitIndex;
         }
 
         public Bitboard[] IndividualBits()

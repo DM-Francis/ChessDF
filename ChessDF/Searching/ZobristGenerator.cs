@@ -78,7 +78,7 @@ namespace ChessDF.Searching
                 for (int p = 0; p < 6; p++)
                 {
                     Bitboard pieces = position.Board[(Side)s, (Piece)p];
-                    int[] pieceSqs = pieces.Serialize();
+                    var pieceSqs = pieces.Serialize();
 
                     for (int i = 0; i < pieceSqs.Length; i++)
                     {

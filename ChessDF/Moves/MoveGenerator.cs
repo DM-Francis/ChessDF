@@ -47,7 +47,7 @@ namespace ChessDF.Moves
             AddPawnPushes(doublePawnPushTargets, doublePawnPushSources, allMoves, true);
 
             // Pawn captures
-            int[] pawnSquares = pawns.Serialize();
+            var pawnSquares = pawns.Serialize();
             for (int p = 0; p < pawnSquares.Length; p++)
             {
                 Square from = (Square)pawnSquares[p];
@@ -59,7 +59,7 @@ namespace ChessDF.Moves
                 else
                     throw new IndexOutOfRangeException(nameof(sideToMove));
 
-                int[] targetSquares = validAttacks.Serialize();
+                var targetSquares = validAttacks.Serialize();
                 for (int t = 0; t < targetSquares.Length; t++)
                 {
                     Square to = (Square)targetSquares[t];
@@ -93,8 +93,8 @@ namespace ChessDF.Moves
 
         private static void AddPawnPushes(Bitboard pawnTargets, Bitboard pawnSources, List<Move> allMoves, bool isDoublePush)
         {
-            int[] pushSourceSq = pawnSources.Serialize();
-            int[] pushTargetSq = pawnTargets.Serialize();
+            var pushSourceSq = pawnSources.Serialize();
+            var pushTargetSq = pawnTargets.Serialize();
 
             for (int i = 0; i < pushSourceSq.Length; i++)
             {
@@ -126,7 +126,7 @@ namespace ChessDF.Moves
             Side sideToMove = position.SideToMove;
             Bitboard knights = board[sideToMove, Piece.Knight];
 
-            int[] knightSources = knights.Serialize();
+            var knightSources = knights.Serialize();
             for (int i = 0; i < knightSources.Length; i++)
             {
                 Square from = (Square)knightSources[i];
@@ -141,7 +141,7 @@ namespace ChessDF.Moves
             Side sideToMove = position.SideToMove;
             Bitboard bishops = board[sideToMove, Piece.Bishop];
 
-            int[] bishopSources = bishops.Serialize();
+            var bishopSources = bishops.Serialize();
             for (int i = 0; i < bishopSources.Length; i++)
             {
                 Square from = (Square)bishopSources[i];
@@ -156,7 +156,7 @@ namespace ChessDF.Moves
             Side sideToMove = position.SideToMove;
             Bitboard rooks = board[sideToMove, Piece.Rook];
 
-            int[] rookSources = rooks.Serialize();
+            var rookSources = rooks.Serialize();
             for (int i = 0; i < rookSources.Length; i++)
             {
                 Square from = (Square)rookSources[i];
@@ -171,7 +171,7 @@ namespace ChessDF.Moves
             Side sideToMove = position.SideToMove;
             Bitboard queens = board[sideToMove, Piece.Queen];
 
-            int[] queenSources = queens.Serialize();
+            var queenSources = queens.Serialize();
             for (int i = 0; i < queenSources.Length; i++)
             {
                 Square from = (Square)queenSources[i];
@@ -186,7 +186,7 @@ namespace ChessDF.Moves
             Side sideToMove = position.SideToMove;
             Bitboard king = board[sideToMove, Piece.King];
 
-            int[] kings = king.Serialize();
+            var kings = king.Serialize();
             if (kings.Length == 0)
                 return;
 
@@ -217,8 +217,8 @@ namespace ChessDF.Moves
                 {
                     Bitboard king = board[side, Piece.King];
                     Bitboard castleTarget = king.EastOne().EastOne();
-                    Square from = (Square)king.Serialize()[0];
-                    Square to = (Square)castleTarget.Serialize()[0];
+                    Square from = (Square)king.FirstIndex();
+                    Square to = (Square)castleTarget.FirstIndex();
 
                     allMoves.Add(new Move(from, to, MoveFlags.KingCastle));
                 }
@@ -237,8 +237,8 @@ namespace ChessDF.Moves
                 {
                     Bitboard king = board[side, Piece.King];
                     Bitboard castleTarget = king.WestOne().WestOne();
-                    Square from = (Square)king.Serialize()[0];
-                    Square to = (Square)castleTarget.Serialize()[0];
+                    Square from = (Square)king.FirstIndex();
+                    Square to = (Square)castleTarget.FirstIndex();
 
                     allMoves.Add(new Move(from, to, MoveFlags.QueenCastle));
                 }
@@ -249,7 +249,7 @@ namespace ChessDF.Moves
         {
             Bitboard validAttacks = attacks & ~board.FriendlyPieces(sideToMove);
 
-            int[] targetSquares = validAttacks.Serialize();
+            var targetSquares = validAttacks.Serialize();
             for (int t = 0; t < targetSquares.Length; t++)
             {
                 Square to = (Square)targetSquares[t];

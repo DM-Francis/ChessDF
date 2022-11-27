@@ -71,7 +71,7 @@ namespace ChessDF.Magics
             for (int index = 0; index < output.Length; index++)
             {
                 Bitboard occupancy = 0;
-                int[] maskBits = mask.Serialize();
+                var maskBits = mask.Serialize();
                 for (int b = 0; b < bitCount; b++)
                 {
                     ulong indexBit = (ulong)(index >> b) & 1;

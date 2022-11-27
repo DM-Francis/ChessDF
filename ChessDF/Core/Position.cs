@@ -1,13 +1,10 @@
 ﻿using ChessDF.Moves;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChessDF.Core
 {
-    public record Position
+    public class Position
     {
         public Position(Board board, Side sideToMove, Square? enPassantSquare, CastlingRights castlingRights, int halfmoveClock)
         {
@@ -71,5 +68,39 @@ namespace ChessDF.Core
         }
 
         public bool HasKing() => Board[SideToMove, Piece.King] != 0;
+
+        public Position WithOpposingSideToMove()
+        {
+            return new Position(
+                Board,
+                SideToMove.OpposingSide(),
+                EnPassantSquare,
+                CastlingRights,
+                HalfmoveClock);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Position position
+                && FullMoveNumber == position.FullMoveNumber
+                && OpposingSide == position.OpposingSide
+                && EqualityComparer<Board>.Default.Equals(Board, position.Board)
+                && SideToMove == position.SideToMove
+                && EnPassantSquare == position.EnPassantSquare
+                && CastlingRights == position.CastlingRights
+                && HalfmoveClock == position.HalfmoveClock;
+        }
+
+        public override int GetHashCode() => HashCode.Combine(FullMoveNumber, OpposingSide, Board, SideToMove, EnPassantSquare, CastlingRights, HalfmoveClock);
+
+        public static bool operator ==(Position? left, Position? right)
+        {
+            return EqualityComparer<Position>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(Position? left, Position? right)
+        {
+            return !(left == right);
+        }
     }
 }

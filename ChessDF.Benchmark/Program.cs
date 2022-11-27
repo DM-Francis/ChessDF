@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
+using ChessDF.Benchmark.Benchmarks;
 using System;
 
 namespace ChessDF.Benchmark
@@ -7,11 +8,12 @@ namespace ChessDF.Benchmark
     {
         static void Main(string[] args)
         {
-            // BenchmarkRunner.Run<BitboardLoopBenchmark>();
+            //BenchmarkRunner.Run<BitboardSerializeBenchmark>();
+            BenchmarkRunner.Run<BitboardLoopBenchmark>();
             //BenchmarkRunner.Run<MoveTypeBenchmark>();
             //BenchmarkRunner.Run<EnumCastBenchmark>();
 
-            BenchmarkRunner.Run<MoveGeneratorBenchmarks>();
+            //BenchmarkRunner.Run<MoveGeneratorBenchmarks>();
         }
     }
 }

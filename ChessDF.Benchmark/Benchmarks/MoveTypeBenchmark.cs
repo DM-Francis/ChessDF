@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChessDF.Benchmark
+namespace ChessDF.Benchmark.Benchmarks
 {
     public class MoveTypeBenchmark
     {
@@ -17,7 +17,7 @@ namespace ChessDF.Benchmark
 
             public MoveUShort(Square from, Square to, MoveFlags flags)
             {
-                _moveData = (ushort)(((uint)flags & 0xf) << 12 | ((uint)from & 0x3f) << 6 | ((uint)to & 0x3f));
+                _moveData = (ushort)(((uint)flags & 0xf) << 12 | ((uint)from & 0x3f) << 6 | (uint)to & 0x3f);
             }
         }
 
@@ -27,7 +27,7 @@ namespace ChessDF.Benchmark
 
             public MoveUInt(Square from, Square to, MoveFlags flags)
             {
-                _moveData = ((uint)flags & 0xf) << 12 | ((uint)from & 0x3f) << 6 | ((uint)to & 0x3f);
+                _moveData = ((uint)flags & 0xf) << 12 | ((uint)from & 0x3f) << 6 | (uint)to & 0x3f;
             }
         }
 

@@ -79,8 +79,7 @@ namespace ChessDF.Test.Moves
 
             // Assert
             var expectedPosition = Position.FromFENString("rnbq1k1r/pp1Pbppp/2p5/8/1QB2B2/2N5/PP2N1PP/2KR3R b - - 3 8 ");
-
-            Assert.Equal(expectedPosition, newPosition);
+            newPosition.Should().Be(expectedPosition);
         }
 
         [Fact]

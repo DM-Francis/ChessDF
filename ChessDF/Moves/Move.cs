@@ -113,7 +113,7 @@ namespace ChessDF.Moves
             if (captureSquare != 0)
             {
                 flags |= MoveFlags.Capture;
-                var sq = (Square)captureSquare.Serialize()[0];
+                var sq = (Square)captureSquare.FirstIndex();
                 (_, Piece piece) = board.GetPieceOnSquare(sq);
                 return new Move(from, to, flags, piece);
             }

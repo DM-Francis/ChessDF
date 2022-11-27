@@ -62,11 +62,24 @@ namespace ChessDF.Test.Core
             var board = new Bitboard(0x00_00_00_00_00_00_01_01);
 
             // Act
-            int[] bitIndices = board.Serialize();
+            var bitIndices = board.Serialize();
 
             // Assert
             var expected = new int[] { 0, 8 };
-            bitIndices.Should().BeEquivalentTo(expected);
+            bitIndices.ToArray().Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void CanGetFirstBitIndex()
+        {
+            // Assemble
+            var board = new Bitboard(0x00_00_00_00_01_00_01_00);
+
+            // Act
+            var bitIndex = board.FirstIndex();
+
+            // Assert
+            bitIndex.Should().Be(8);
         }
 
         [Fact]

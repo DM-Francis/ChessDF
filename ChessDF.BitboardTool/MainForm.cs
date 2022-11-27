@@ -185,7 +185,7 @@ namespace ChessDF.BitboardTool
 
             foreach ((Color color, Bitboard bitboard) in _bitboards)
             {
-                int[] indexes = bitboard.Serialize();
+                var indexes = bitboard.Serialize();
 
                 foreach(int index in indexes)
                 {

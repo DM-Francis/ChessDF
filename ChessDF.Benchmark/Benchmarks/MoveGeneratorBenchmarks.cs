@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChessDF.Benchmark
+namespace ChessDF.Benchmark.Benchmarks
 {
     public class MoveGeneratorBenchmarks
     {
